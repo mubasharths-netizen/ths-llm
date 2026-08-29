@@ -1,3 +1,4 @@
+/// <reference path="./node-sqlite.d.ts" />
 import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
