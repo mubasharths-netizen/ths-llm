@@ -1,3 +1,29 @@
+export type SqlRow = Record<string, unknown>;
+
+export type CourseLesson = {
+  id: string;
+  title: string;
+  duration: string;
+};
+
+export type CourseModule = {
+  id: string;
+  title: string;
+  lessons: CourseLesson[];
+};
+
+export type CourseDetail = {
+  id: string;
+  title: string;
+  description: string;
+  teacher_name: string;
+  category: string;
+  level: string;
+  duration: string;
+  lesson_count: number;
+  modules: CourseModule[];
+};
+
 export type CourseCard = {
   id: string;
   title: string;

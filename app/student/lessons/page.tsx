@@ -12,7 +12,7 @@ export default async function LessonsPage() {
     const detail = getCourse(course.id);
     if (!detail) return [];
     return detail.modules.flatMap((mod) =>
-      (mod.lessons as Array<{ id: string; title: string; duration: string }>).map((lesson) => ({
+      mod.lessons.map((lesson) => ({
         ...lesson,
         courseId: course.id,
       })),

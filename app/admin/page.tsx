@@ -53,6 +53,9 @@ export default function AdminDashboardPage() {
       <Card className="mt-6">
         <h2 className="font-semibold">Quick links</h2>
         <div className="mt-4 flex flex-wrap gap-2">
+          <Button href="/admin/conduct" variant="secondary">
+            Complaints & discipline
+          </Button>
           <Button href="/admin/approvals" variant="secondary">
             Teacher approval
           </Button>

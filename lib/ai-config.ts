@@ -74,8 +74,8 @@ export async function readAiConfig(): Promise<AiConfig> {
   try {
     const raw = await readFile(filePath, "utf8");
     const parsed = JSON.parse(raw) as Partial<AiConfig> & { apiKey?: string };
-    const { apiKey: _ignored, ...safe } = parsed;
-    return { ...defaults, ...safe };
+    delete parsed.apiKey;
+    return { ...defaults, ...parsed };
   } catch {
     return { ...defaults };
   }

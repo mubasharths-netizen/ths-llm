@@ -21,6 +21,24 @@ export default async function TeacherDashboardPage() {
         <StatCard label="Students" value={String(students.length)} />
         <StatCard label="Published" value={String(courses.filter((c) => Number(c.published) === 1).length)} />
       </div>
+      <Card className="mt-6">
+        <h2 className="font-semibold">Communication & student care</h2>
+        <p className="mt-1 text-sm text-text-secondary">
+          Message students, file a complaint, or record a warning. Serious discipline is decided by Admin.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button href="/teacher/messages">Messages / Email</Button>
+          <Button href="/teacher/announcements" variant="secondary">
+            Announcements
+          </Button>
+          <Button href="/teacher/complaints" variant="secondary">
+            Complaints
+          </Button>
+          <Button href="/teacher/discipline" variant="secondary">
+            Discipline reports
+          </Button>
+        </div>
+      </Card>
       <h2 className="mt-8 mb-4 text-xl font-semibold">Your courses</h2>
       {courses.length === 0 ? (
         <Card>

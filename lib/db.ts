@@ -1,13 +1,12 @@
-/// <reference path="./node-sqlite.d.ts" />
 import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 import { hashPassword } from "@/lib/password";
 import { dataDir } from "@/lib/data-dir";
 import { SCHEMA_SQL } from "@/lib/schema-sql";
-import type { AdminUserRow, CourseCard } from "@/lib/db-types";
+import type { AdminUserRow, CourseCard, CourseDetail, CourseLesson, CourseModule, SqlRow } from "@/lib/db-types";
 
-export type { AdminUserRow, CourseCard };
+export type { AdminUserRow, CourseCard, CourseDetail, CourseLesson, CourseModule, SqlRow };
 
 const dbPath = path.join(dataDir(), "ths.db");
 
@@ -54,7 +53,9 @@ export function db() {
 }
 
 export function ensureSeeded() {
-  migrateUsers(db());
+  const database = db();
+  migrateUsers(database);
+  database.exec(SCHEMA_SQL);
 }
 
 export function getUserByEmail(email: string) {
@@ -104,24 +105,8 @@ export function listCourses() {
        WHERE c.published = 1
        ORDER BY c.title`,
     )
-    .all() as Array<Record<string, unknown>>;
+    .all() as SqlRow[];
 }
-
-export type CourseDetail = {
-  id: string;
-  title: string;
-  description: string;
-  teacher_name: string;
-  category: string;
-  level: string;
-  duration: string;
-  lesson_count: number;
-  modules: Array<{
-    id: string;
-    title: string;
-    lessons: Array<{ id: string; title: string; duration: string }>;
-  }>;
-};
 
 export function getCourse(id: string): CourseDetail | null {
   ensureSeeded();
@@ -132,17 +117,17 @@ export function getCourse(id: string): CourseDetail | null {
        JOIN users u ON u.id = c.teacher_id
        WHERE c.id = ?`,
     )
-    .get(id) as Record<string, unknown> | undefined;
+    .get(id) as SqlRow | undefined;
   if (!course) return null;
   const modules = db()
     .prepare("SELECT * FROM modules WHERE course_id = ? ORDER BY sort_order")
     .all(id) as Array<{ id: string; title: string }>;
-  const withLessons = modules.map((mod) => ({
+  const withLessons: CourseModule[] = modules.map((mod) => ({
     id: mod.id,
     title: mod.title,
     lessons: db()
       .prepare("SELECT id, title, duration FROM lessons WHERE module_id = ? ORDER BY sort_order")
-      .all(mod.id) as Array<{ id: string; title: string; duration: string }>,
+      .all(mod.id) as CourseLesson[],
   }));
   return {
     id: String(course.id),
@@ -211,6 +196,11 @@ export function studentDashboard(userId: string) {
 
 function asPlain<T extends object>(row: T): T {
   return { ...row };
+}
+
+function asSqlRow(row: unknown): SqlRow {
+  if (row && typeof row === "object") return { ...(row as SqlRow) };
+  return {};
 }
 
 function mapCourse(row: Record<string, unknown>, progress = 0): CourseCard {
@@ -455,9 +445,36 @@ export function writeAudit(actor: string, action: string, target: string, ip = "
     .run(`a-${Date.now()}`, actor, action, target, ip);
 }
 
-export function studentAssignments(userId: string) {
+export type AssignmentRow = {
+  id: string;
+  title: string;
+  deadline: string;
+  course: string;
+  status: string | null;
+};
+
+export type NotificationRow = {
+  id: string;
+  type: string;
+  title: string;
+  unread: number;
+  created_at: string;
+  user_id: string;
+};
+
+export type MistakeRow = {
+  id: string;
+  question: string;
+  student_answer: string;
+  correct_answer: string;
+  explanation: string;
+  topic: string;
+  user_id: string;
+};
+
+export function studentAssignments(userId: string): AssignmentRow[] {
   ensureSeeded();
-  return (db()
+  return db()
     .prepare(
       `SELECT a.id, a.title, a.deadline, c.title AS course, s.status
        FROM assignments a
@@ -465,24 +482,54 @@ export function studentAssignments(userId: string) {
        LEFT JOIN submissions s ON s.assignment_id = a.id AND s.user_id = ?
        ORDER BY a.deadline`,
     )
-    .all(userId) as object[])
-    .map((row) => asPlain(row));
+    .all(userId)
+    .map((row: unknown): AssignmentRow => {
+      const values = asSqlRow(row);
+      return asPlain({
+        id: String(values.id),
+        title: String(values.title),
+        deadline: String(values.deadline),
+        course: String(values.course),
+        status: values.status == null ? null : String(values.status),
+      });
+    });
 }
 
-export function studentNotifications(userId: string) {
+export function studentNotifications(userId: string): NotificationRow[] {
   ensureSeeded();
-  return (db()
-    .prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC")
-    .all(userId) as object[])
-    .map((row) => asPlain(row));
+  return db()
+    .prepare("SELECT id, type, title, unread, created_at, user_id FROM notifications WHERE user_id = ? ORDER BY created_at DESC")
+    .all(userId)
+    .map((row: unknown): NotificationRow => {
+      const values = asSqlRow(row);
+      return asPlain({
+        id: String(values.id),
+        type: String(values.type),
+        title: String(values.title),
+        unread: Number(values.unread ?? 0),
+        created_at: String(values.created_at),
+        user_id: String(values.user_id),
+      });
+    });
 }
 
-export function studentMistakes(userId: string) {
+export function studentMistakes(userId: string): MistakeRow[] {
   ensureSeeded();
-  return (db()
+  return db()
     .prepare("SELECT * FROM mistakes WHERE user_id = ?")
-    .all(userId) as object[])
-    .map((row) => asPlain(row));
+    .all(userId)
+    .map((row: unknown): MistakeRow => {
+      const values = asSqlRow(row);
+      return asPlain({
+        id: String(values.id),
+        question: String(values.question),
+        student_answer: String(values.student_answer),
+        correct_answer: String(values.correct_answer),
+        explanation: String(values.explanation),
+        topic: String(values.topic),
+        user_id: String(values.user_id),
+      });
+    });
 }
 
 export function adminOverview() {

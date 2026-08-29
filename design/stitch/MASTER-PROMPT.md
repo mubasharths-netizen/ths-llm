@@ -53,10 +53,10 @@ Product, Learn, Support, Legal columns · © 2026 THS LAB LMS
 Dashboard · My Courses · Lessons · Practice · Quizzes · Tests · Assignments · AI Tutor · Coding Lab · My Mistakes · Study Planner · Total Score · Class Ranking · Progress · Certificates · Notifications · Profile
 
 ### Teacher sidebar
-Dashboard · Courses · Classes · Students · Lessons · Practice Questions · Quizzes · Tests · Exams · Assignments · Grades · Feedback · Analytics · Announcements · Profile
+Dashboard · Courses · Classes · Students · Lessons · Practice Questions · Quizzes · Tests · Exams · Assignments · Grades · Feedback · Analytics · Messages / Email · Announcements · Complaints · Discipline reports · Profile
 
 ### Admin sidebar
-Dashboard · Users · Students · Teachers · Teacher Approval · Courses · Classes · Assessments · Results · Rankings · Certificates · AI Settings · Analytics · Permissions · Security · Audit Logs · Settings
+Dashboard · Users · Students · Teachers · Teacher Approval · Complaints & discipline · Courses · Classes · Assessments · Results · Rankings · Certificates · AI Settings · Analytics · Permissions · Security · Audit Logs · Settings
 
 ### App top bar
 Breadcrumbs · Search · Notification bell with count · Dark mode toggle · User avatar + name + role
@@ -73,10 +73,10 @@ P01 Welcome · P02 Home · P03 About · P04 Courses Catalog · P05 Features · P
 S01 Dashboard · S02 My Courses · S03 Course Detail · S04 Lesson · S05 Practice · S06 Practice Result · S07 AI Tutor · S08 Quiz · S09 Test · S10 Test Result · S11 Assignments List · S12 Assignment Detail · S13 My Mistakes · S14 Study Planner · S15 Total Score · S16 Class Ranking · S17 Progress · S18 Certificates · S19 Certificate Detail · S20 Notifications · S21 Profile · S22 Coding Lab
 
 ### Teacher
-T01 Dashboard · T02 Courses · T03 Create/Edit Course · T04 Classes · T05 Class Detail · T06 Students · T07 Practice Manager · T08 Question Editor · T09 Quiz Manager · T10 Test Manager · T11 Assignment Manager · T12 Submissions/Grade · T13 Grades · T14 Analytics · T15 Announcements · T16 Profile
+T01 Dashboard · T02 Courses · T03 Create/Edit Course · T04 Classes · T05 Class Detail · T06 Students · T07 Practice Manager · T08 Question Editor · T09 Quiz Manager · T10 Test Manager · T11 Assignment Manager · T12 Submissions/Grade · T13 Grades · T14 Analytics · T15 Announcements · T16 Profile · T17 Messages / Email · T18 Complaints · T19 Discipline reports
 
 ### Admin
-A01 Dashboard · A02 Users · A03 Teacher Approval · A04 Courses · A05 Assessments · A06 Results & Analytics · A07 Rankings · A08 Certificates · A09 AI Settings · A10 Security · A11 Audit Logs · A12 Settings · A13 Permissions
+A01 Dashboard · A02 Users · A03 Teacher Approval · A04 Courses · A05 Assessments · A06 Results & Analytics · A07 Rankings · A08 Certificates · A09 AI Settings · A10 Security · A11 Audit Logs · A12 Settings · A13 Permissions · A14 Complaints & discipline review
 
 ## Layout rules by screen type
 
@@ -280,6 +280,18 @@ Compose, select class, publish. History list.
 
 Professional profile, subjects, classes.
 
+## T17 — Messages / Email
+
+Compose card: type (announcement, assignment reminder, test reminder, performance feedback), audience (one student, selected students, entire class), subject, message. History table of sent mail.
+
+## T18 — Complaints (Shikayat)
+
+Form: student, class (read-only), category, description, supporting notes. Status chips: Pending, Under Review, Resolved, Closed. Teacher sees only their filings.
+
+## T19 — Discipline reports
+
+Warning / Second warning / Classroom incident / Escalate to Admin. Teachers do not apply serious punishment. Flow: Teacher → Submit report → Admin review → Decision → Action recorded.
+
 ## A01 — Admin Dashboard
 
 Stats: students, teachers, courses, active users, average score, system activity. Activity timeline.
@@ -331,6 +343,43 @@ Platform name, logo, theme, dark mode default, notifications, scoring rules.
 ## A13 — Permissions
 
 Role matrix: Student / Teacher / Admin capabilities.
+
+## A14 — Complaints & discipline review
+
+Admin-only. Two stacks: complaints and discipline reports. Each case: student, teacher, category/level, notes, status, official notes, approve/reject/resolve, optional release of an official notice to that student only. Audit of who submitted and status changes.
+
+---
+
+# TEACHER COMMUNICATION, COMPLAINT & DISCIPLINE SYSTEM
+
+Add a professional communication and student management system to the THS LAB LMS Teacher Portal.
+
+## EMAIL / MESSAGE SYSTEM
+
+Teachers can communicate with students: one student, selected students, or an entire class. Types: announcements, assignment reminders, test reminders, performance feedback.
+
+Example subject: Upcoming JavaScript Test  
+Example message: Please prepare for the upcoming JavaScript test.
+
+## COMPLAINT / SHIKAYAT SYSTEM
+
+Teachers submit complaints on student behavior, academic misconduct, attendance, class discipline, or other concerns. Form fields: student name, class, category, description, date, supporting notes. Status: Pending, Under Review, Resolved, Closed. Visible to Admin. Students see complaint details only if Admin releases an official notice to that student.
+
+## STUDENT DISCIPLINE SYSTEM
+
+Teachers must not apply serious punishment directly. They may give a warning, record a classroom incident, submit a disciplinary report, or recommend action to Admin (Warning → Second warning → Escalate to Admin). Serious flow: Teacher → Submit report → Admin review → Decision → Action recorded.
+
+## ADMIN REVIEW
+
+Admin reviews complaints and disciplinary reports, approves or rejects recommended actions, adds official notes, marks resolved, and keeps audit history (submitter, date/time, status changes, decision).
+
+## PRIVACY & SECURITY
+
+Records are private. Teachers see only their own students/classes. Admin has authorized institute access. Students must not see other students’ disciplinary information. Enforce permissions on the backend.
+
+## TEACHER DASHBOARD ADDITIONS
+
+Menu: Messages / Email, Announcements, Complaints, Discipline Reports. Teachers communicate and report; Admin handles serious disciplinary decisions.
 
 ---
 

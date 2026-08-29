@@ -43,7 +43,10 @@ export const teacherNav: NavItem[] = [
   { href: "/teacher/grades", label: "Grades", icon: "Table2" },
   { href: "/teacher/feedback", label: "Feedback", icon: "MessageSquare" },
   { href: "/teacher/analytics", label: "Analytics", icon: "ChartLine" },
+  { href: "/teacher/messages", label: "Messages / Email", icon: "Mail" },
   { href: "/teacher/announcements", label: "Announcements", icon: "Megaphone" },
+  { href: "/teacher/complaints", label: "Complaints", icon: "CircleAlert" },
+  { href: "/teacher/discipline", label: "Discipline reports", icon: "Shield" },
   { href: "/teacher/profile", label: "Profile", icon: "User" },
 ];
 
@@ -55,6 +58,7 @@ export const adminNav: NavItem[] = [
   { href: "/admin/add", label: "Add account", icon: "UserPlus" },
   { href: "/admin/users", label: "All users", icon: "Users" },
   { href: "/admin/approvals", label: "Teacher Approval", icon: "UserCheck" },
+  { href: "/admin/conduct", label: "Complaints & discipline", icon: "Shield" },
   { href: "/admin/courses", label: "Courses", icon: "BookOpen" },
   { href: "/admin/classes", label: "Classes", icon: "School" },
   { href: "/admin/assessments", label: "Assessments", icon: "ClipboardList" },

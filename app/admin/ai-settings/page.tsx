@@ -39,7 +39,20 @@ export default function AiSettingsPage() {
   }
 
   useEffect(() => {
-    void load();
+    const controller = new AbortController();
+    fetch("/api/admin/ai-settings", { signal: controller.signal })
+      .then(async (res) => {
+        if (res.status === 401 || res.status === 403) {
+          setAuthError("Sign in as Admin to manage AI settings.");
+          return;
+        }
+        const data = (await res.json()) as Status;
+        setStatus(data);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+      });
+    return () => controller.abort();
   }, []);
 
   async function save() {

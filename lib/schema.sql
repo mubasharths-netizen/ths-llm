@@ -109,3 +109,67 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   ip TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS class_messages (
+  id TEXT PRIMARY KEY,
+  teacher_id TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  body TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  audience TEXT NOT NULL,
+  class_name TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (teacher_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS class_message_recipients (
+  message_id TEXT NOT NULL,
+  student_id TEXT NOT NULL,
+  PRIMARY KEY (message_id, student_id),
+  FOREIGN KEY (message_id) REFERENCES class_messages(id) ON DELETE CASCADE,
+  FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS complaints (
+  id TEXT PRIMARY KEY,
+  teacher_id TEXT NOT NULL,
+  student_id TEXT NOT NULL,
+  class_name TEXT NOT NULL,
+  category TEXT NOT NULL,
+  description TEXT NOT NULL,
+  notes TEXT,
+  status TEXT NOT NULL DEFAULT 'Pending',
+  visible_to_student INTEGER NOT NULL DEFAULT 0,
+  admin_notes TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (teacher_id) REFERENCES users(id),
+  FOREIGN KEY (student_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS discipline_reports (
+  id TEXT PRIMARY KEY,
+  teacher_id TEXT NOT NULL,
+  student_id TEXT NOT NULL,
+  class_name TEXT NOT NULL,
+  level TEXT NOT NULL,
+  description TEXT NOT NULL,
+  recommended_action TEXT,
+  status TEXT NOT NULL DEFAULT 'Pending',
+  visible_to_student INTEGER NOT NULL DEFAULT 0,
+  admin_notes TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (teacher_id) REFERENCES users(id),
+  FOREIGN KEY (student_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS case_events (
+  id TEXT PRIMARY KEY,
+  case_type TEXT NOT NULL,
+  case_id TEXT NOT NULL,
+  actor_name TEXT NOT NULL,
+  action TEXT NOT NULL,
+  note TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);

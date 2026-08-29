@@ -2,13 +2,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, PageHeader } from "@/components/ui/card";
 import { getCourse, listCourses } from "@/lib/db";
+import type { CourseDetail } from "@/lib/db-types";
 
 export const metadata = { title: "Admin courses" };
 
 export default function AdminCoursesPage() {
-  const courses = listCourses()
+  const courses: CourseDetail[] = listCourses()
     .map((row) => getCourse(String(row.id)))
-    .filter((course): course is NonNullable<typeof course> => course !== null);
+    .filter((course): course is CourseDetail => course !== null);
 
   return (
     <>

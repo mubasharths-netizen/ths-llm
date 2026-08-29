@@ -1,8 +1,26 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useSyncExternalStore } from "react";
 
 type Theme = "light" | "dark";
+
+const listeners = new Set<() => void>();
+
+function readTheme(): Theme {
+  if (typeof window === "undefined") return "light";
+  return window.localStorage.getItem("ths-theme") === "dark" ? "dark" : "light";
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function writeTheme(next: Theme) {
+  window.localStorage.setItem("ths-theme", next);
+  document.documentElement.classList.toggle("dark", next === "dark");
+  listeners.forEach((listener) => listener());
+}
 
 const ThemeContext = createContext<{
   theme: Theme;
@@ -10,21 +28,15 @@ const ThemeContext = createContext<{
 }>({ theme: "light", toggle: () => {} });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
+  const theme = useSyncExternalStore(subscribe, readTheme, () => "light" as const);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("ths-theme") as Theme | null;
-    const next = stored === "dark" ? "dark" : "light";
-    setTheme(next);
-    document.documentElement.classList.toggle("dark", next === "dark");
-  }, []);
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
 
-  function toggle() {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    document.documentElement.classList.toggle("dark", next === "dark");
-    window.localStorage.setItem("ths-theme", next);
-  }
+  const toggle = useCallback(() => {
+    writeTheme(theme === "dark" ? "light" : "dark");
+  }, [theme]);
 
   return <ThemeContext.Provider value={{ theme, toggle }}>{children}</ThemeContext.Provider>;
 }
