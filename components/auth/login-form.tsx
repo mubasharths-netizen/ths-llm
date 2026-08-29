@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 
 const homeByRole = {
   student: "/student",
@@ -43,8 +44,9 @@ export function LoginForm({
         setError(data.error || "Unable to sign in.");
         return;
       }
-      const role = data.user?.role;
-      const dest = role && role in homeByRole ? homeByRole[role as keyof typeof homeByRole] : "/student";
+      const accountRole = data.user?.role;
+      const dest =
+        accountRole && accountRole in homeByRole ? homeByRole[accountRole as keyof typeof homeByRole] : "/student";
       router.push(dest);
       router.refresh();
     })();
@@ -58,9 +60,20 @@ export function LoginForm({
         </div>
         <Card>
           <h1 className="text-[28px] font-semibold tracking-tight">Login</h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            Use the email and password you created. Demo accounts are gone.
-          </p>
+          {allowSetup ? (
+            <div className="mt-4 space-y-3">
+              <Alert tone="hint">
+                This server has no users yet. Create the first administrator — that account becomes Admin and can sign
+                in.
+              </Alert>
+              <Button href="/register" className="w-full">
+                Create administrator
+              </Button>
+              <p className="text-sm text-text-secondary">Already created the admin account? Sign in below.</p>
+            </div>
+          ) : (
+            <p className="mt-1 text-sm text-text-secondary">Sign in with your email and password.</p>
+          )}
           {justReset ? (
             <p className="mt-3 text-sm font-medium text-teal">Password updated. Sign in with your new password.</p>
           ) : null}
@@ -119,14 +132,6 @@ export function LoginForm({
               {pending ? "Signing in…" : "Login"}
             </Button>
           </form>
-          {allowSetup ? (
-            <p className="mt-4 text-sm text-text-secondary">
-              No administrator yet?{" "}
-              <Link href="/register" className="font-medium text-primary">
-                Create administrator
-              </Link>
-            </p>
-          ) : null}
         </Card>
       </div>
     </main>

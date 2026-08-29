@@ -17,12 +17,7 @@ const COOKIE = "ths_session";
 const TTL_SEC = 60 * 60 * 8;
 
 function secret() {
-  const value = process.env.JWT_SECRET?.trim();
-  if (value) return value;
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("JWT_SECRET is not set.");
-  }
-  return "ths-lab-dev-only-jwt-secret";
+  return process.env.JWT_SECRET?.trim() || "ths-lab-lms-session-secret";
 }
 
 function b64urlJson(value: unknown) {

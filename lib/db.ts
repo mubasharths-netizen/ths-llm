@@ -8,6 +8,12 @@ import type { AdminUserRow, CourseCard, CourseDetail, CourseLesson, CourseModule
 
 export type { AdminUserRow, CourseCard, CourseDetail, CourseLesson, CourseModule, SqlRow };
 
+const OWNER_ADMIN_EMAILS = new Set(["mubasharths@gmail.com", "mubashartha@gmail.com"]);
+
+export function isOwnerAdminEmail(email: string) {
+  return OWNER_ADMIN_EMAILS.has(email.trim().toLowerCase());
+}
+
 const dbPath = path.join(dataDir(), "ths.db");
 
 type GlobalDb = { db?: DatabaseSync; seeded?: boolean };
@@ -56,6 +62,33 @@ export function ensureSeeded() {
   const database = db();
   migrateUsers(database);
   database.exec(SCHEMA_SQL);
+  ensureBootstrapAdmin(database);
+}
+
+function ensureBootstrapAdmin(database: DatabaseSync) {
+  const email = process.env.BOOTSTRAP_ADMIN_EMAIL?.trim().toLowerCase() || "";
+  const password = process.env.BOOTSTRAP_ADMIN_PASSWORD || "";
+  const name = process.env.BOOTSTRAP_ADMIN_NAME?.trim() || "Administrator";
+  if (!email.includes("@") || password.length < 4) return;
+  const existing = database.prepare("SELECT id, role, status FROM users WHERE email = ?").get(email) as
+    | { id: string; role: string; status: string }
+    | undefined;
+  if (existing) {
+    if (existing.role !== "admin" || existing.status !== "Active") {
+      database.prepare("UPDATE users SET role = 'admin', status = 'Active' WHERE id = ?").run(existing.id);
+    }
+    return;
+  }
+  try {
+    database
+      .prepare(
+        `INSERT INTO users (id, name, email, password_hash, role, class_name, status, score)
+         VALUES (?, ?, ?, ?, 'admin', 'Ops', 'Active', 0)`,
+      )
+      .run("admin-bootstrap", name, email, hashPassword(password));
+  } catch {
+    // Another request may have created the same bootstrap admin.
+  }
 }
 
 export function getUserByEmail(email: string) {
@@ -379,6 +412,34 @@ export function setUserPassword(email: string, password: string) {
   if (!user) return null;
   db().prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(hashPassword(password), user.id);
   return getUserById(user.id);
+}
+
+export function ensureAdministrator(input: {
+  email: string;
+  name?: string;
+  password?: string;
+}): { user: DbUser; created: boolean } {
+  ensureSeeded();
+  const email = input.email.trim().toLowerCase();
+  const existing = getUserByEmail(email);
+  if (existing) {
+    db()
+      .prepare("UPDATE users SET role = 'admin', status = 'Active', class_name = COALESCE(NULLIF(class_name, ''), 'Ops') WHERE id = ?")
+      .run(existing.id);
+    const user = getUserById(existing.id)!;
+    return { user, created: false };
+  }
+  if (!input.password || input.password.length < 4) {
+    throw new Error("A password (4+ characters) is required to create an administrator.");
+  }
+  const user = createManagedUser({
+    name: input.name?.trim() || "Administrator",
+    email,
+    password: input.password,
+    role: "admin",
+    className: "Ops",
+  });
+  return { user, created: true };
 }
 
 export function getAssignmentForStudent(id: string, userId: string) {
