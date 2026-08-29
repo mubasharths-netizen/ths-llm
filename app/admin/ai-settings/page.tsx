@@ -11,7 +11,6 @@ type Status = {
   enabled: boolean;
   provider: AiProvider;
   apiKeySet: boolean;
-  apiKeyHint: string;
   ollamaUrl: string;
   ollamaModel: string;
   dailyLimit: number;
@@ -24,13 +23,17 @@ type Status = {
 
 export default function AiSettingsPage() {
   const [status, setStatus] = useState<Status | null>(null);
-  const [apiKey, setApiKey] = useState("");
   const [message, setMessage] = useState("");
   const [tone, setTone] = useState<"success" | "error" | "info">("info");
   const [busy, setBusy] = useState(false);
+  const [authError, setAuthError] = useState("");
 
   async function load() {
     const res = await fetch("/api/admin/ai-settings");
+    if (res.status === 401 || res.status === 403) {
+      setAuthError("Sign in as Admin to manage AI settings.");
+      return;
+    }
     const data = (await res.json()) as Status;
     setStatus(data);
   }
@@ -39,7 +42,7 @@ export default function AiSettingsPage() {
     void load();
   }, []);
 
-  async function save(extra?: Partial<Status> & { apiKey?: string; clearKey?: boolean }) {
+  async function save() {
     if (!status) return;
     setBusy(true);
     setMessage("");
@@ -47,23 +50,25 @@ export default function AiSettingsPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        enabled: extra?.enabled ?? status.enabled,
-        provider: extra?.provider ?? status.provider,
-        dailyLimit: extra?.dailyLimit ?? status.dailyLimit,
-        answerMode: extra?.answerMode ?? status.answerMode,
-        safetyEnabled: extra?.safetyEnabled ?? status.safetyEnabled,
-        ollamaUrl: extra?.ollamaUrl ?? status.ollamaUrl,
-        ollamaModel: extra?.ollamaModel ?? status.ollamaModel,
-        apiKey: extra?.apiKey ?? (apiKey || undefined),
-        clearKey: extra?.clearKey,
+        enabled: status.enabled,
+        provider: status.provider,
+        dailyLimit: status.dailyLimit,
+        answerMode: status.answerMode,
+        safetyEnabled: status.safetyEnabled,
+        ollamaUrl: status.ollamaUrl,
+        ollamaModel: status.ollamaModel,
       }),
     });
-    const data = (await res.json()) as Status;
-    setStatus(data);
-    setApiKey("");
+    const data = (await res.json()) as Status & { error?: string };
     setBusy(false);
+    if (!res.ok) {
+      setTone("error");
+      setMessage(data.error || "Could not save settings.");
+      return;
+    }
+    setStatus(data);
     setTone("success");
-    setMessage("AI settings saved.");
+    setMessage("AI settings saved. The API key stays in .env.local only.");
   }
 
   async function testTutor() {
@@ -73,6 +78,8 @@ export default function AiSettingsPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        context: "tutor",
+        intent: "chat",
         messages: [{ role: "user", content: "Reply with one short sentence confirming THS AI Tutor is working." }],
       }),
     });
@@ -88,17 +95,24 @@ export default function AiSettingsPage() {
     }
   }
 
+  if (authError) {
+    return (
+      <>
+        <PageHeader title="AI Settings" />
+        <Alert tone="error">{authError} Use Login as Admin first.</Alert>
+      </>
+    );
+  }
+
   if (!status) {
     return <p className="text-sm text-text-secondary">Loading AI settings…</p>;
   }
-
-  const connected = status.apiKeySet || status.envKeySet || status.provider === "ollama";
 
   return (
     <>
       <PageHeader
         title="AI Settings"
-        description="Configure THS AI Tutor, usage limits, and safety."
+        description="Tutor behaviour and limits. The secret key is never stored in the browser."
         actions={
           <Button href="/student/ai-tutor" variant="secondary">
             Open AI Tutor
@@ -112,84 +126,66 @@ export default function AiSettingsPage() {
       ) : null}
       <div className="mb-6 flex flex-wrap gap-2">
         <Badge tone={status.enabled ? "teal" : "muted"}>{status.enabled ? "Tutor enabled" : "Tutor disabled"}</Badge>
-        <Badge tone={connected ? "primary" : "hint"}>{connected ? "Provider configured" : "API key needed"}</Badge>
+        <Badge tone={status.envKeySet || status.apiKeySet ? "primary" : "hint"}>
+          {status.envKeySet || status.apiKeySet ? "AI_API_KEY configured" : "AI_API_KEY missing"}
+        </Badge>
         <Badge tone="outline">
           {status.remainingToday} / {status.dailyLimit} remaining today
         </Badge>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <h2 className="font-semibold">Provider</h2>
-          <p className="mt-1 text-sm text-text-secondary">
-            Gemini has a free API key from Google AI Studio. You can also use OpenAI, Groq, or local Ollama.
+          <h2 className="font-semibold">API key</h2>
+          <p className="mt-2 text-sm text-text-secondary">
+            Put the key in <code>.env.local</code> on the server, then restart Next.js. Never paste a key into this
+            page or any React component.
           </p>
-          <div className="mt-4 space-y-3">
-            <div>
-              <label className="label" htmlFor="provider">
-                Model provider
-              </label>
-              <select
-                id="provider"
-                className="input"
-                value={status.provider}
-                onChange={(e) => setStatus({ ...status, provider: e.target.value as AiProvider })}
-              >
-                <option value="gemini">Google Gemini</option>
-                <option value="openai">OpenAI</option>
-                <option value="groq">Groq</option>
-                <option value="ollama">Ollama (local)</option>
-              </select>
-            </div>
-            {status.provider === "ollama" ? (
-              <>
-                <div>
-                  <label className="label">Ollama URL</label>
-                  <input
-                    className="input"
-                    value={status.ollamaUrl}
-                    onChange={(e) => setStatus({ ...status, ollamaUrl: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="label">Ollama model</label>
-                  <input
-                    className="input"
-                    value={status.ollamaModel}
-                    onChange={(e) => setStatus({ ...status, ollamaModel: e.target.value })}
-                  />
-                </div>
-              </>
-            ) : (
+          <pre className="mt-4 overflow-x-auto rounded-lg bg-[#0F172A] p-4 font-mono text-xs text-slate-100">{`AI_API_KEY=your_secret_api_key
+AI_PROVIDER=gemini
+JWT_SECRET=change-this-secret`}</pre>
+          <div className="mt-4">
+            <label className="label" htmlFor="provider">
+              Model provider
+            </label>
+            <select
+              id="provider"
+              className="input"
+              value={status.provider}
+              onChange={(e) => setStatus({ ...status, provider: e.target.value as AiProvider })}
+            >
+              <option value="gemini">Google Gemini</option>
+              <option value="openai">OpenAI</option>
+              <option value="groq">Groq</option>
+              <option value="ollama">Ollama (local, no key)</option>
+            </select>
+          </div>
+          {status.provider === "ollama" ? (
+            <div className="mt-3 space-y-3">
               <div>
-                <label className="label" htmlFor="apiKey">
-                  API key {status.apiKeyHint ? `(saved ${status.apiKeyHint})` : ""}
-                </label>
+                <label className="label">Ollama URL</label>
                 <input
-                  id="apiKey"
-                  type="password"
                   className="input"
-                  placeholder={status.apiKeySet || status.envKeySet ? "Leave blank to keep current key" : "Paste API key"}
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
+                  value={status.ollamaUrl}
+                  onChange={(e) => setStatus({ ...status, ollamaUrl: e.target.value })}
                 />
-                <p className="mt-1 text-xs text-text-muted">
-                  Gemini: aistudio.google.com/apikey · stored only on this server, not in git.
-                </p>
               </div>
-            )}
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" disabled={busy} onClick={() => save()}>
-                Save settings
-              </Button>
-              <Button type="button" variant="teal" disabled={busy} onClick={testTutor}>
-                Test AI Tutor
-              </Button>
-              {status.apiKeySet ? (
-                <Button type="button" variant="ghost" disabled={busy} onClick={() => save({ clearKey: true })}>
-                  Clear saved key
-                </Button>
-              ) : null}
+              <div>
+                <label className="label">Ollama model</label>
+                <input
+                  className="input"
+                  value={status.ollamaModel}
+                  onChange={(e) => setStatus({ ...status, ollamaModel: e.target.value })}
+                />
+              </div>
             </div>
+          ) : null}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button type="button" disabled={busy} onClick={() => void save()}>
+              Save settings
+            </Button>
+            <Button type="button" variant="teal" disabled={busy} onClick={() => void testTutor()}>
+              Test AI Tutor
+            </Button>
           </div>
         </Card>
         <Card>

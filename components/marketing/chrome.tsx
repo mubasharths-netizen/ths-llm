@@ -37,7 +37,7 @@ export function MarketingNav() {
           <Button href="/login" variant="ghost">
             Login
           </Button>
-          <Button href="/register">Get Started</Button>
+          <Button href="/login">Get Started</Button>
         </div>
         <button
           type="button"
@@ -59,7 +59,7 @@ export function MarketingNav() {
             <Button href="/login" variant="secondary">
               Login
             </Button>
-            <Button href="/register">Get Started</Button>
+            <Button href="/login">Get Started</Button>
           </div>
         </div>
       ) : null}

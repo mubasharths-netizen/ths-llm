@@ -19,6 +19,11 @@ export default function TestPage() {
   const [seconds, setSeconds] = useState(42 * 60 + 18);
 
   useEffect(() => {
+    void fetch("/api/assessments/lock", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "start", kind: "test" }),
+    });
     const t = setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
     return () => clearInterval(t);
   }, []);
@@ -26,12 +31,23 @@ export default function TestPage() {
   const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
   const ss = String(seconds % 60).padStart(2, "0");
 
+  async function submitTest() {
+    await fetch("/api/assessments/lock", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "end" }),
+    });
+    router.push("/student/tests/python-midterm/result");
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       <Alert tone="hint">TEST MODE ACTIVE · Practice, hints, and AI Tutor are locked.</Alert>
       <div className="mt-4 flex items-center justify-between">
         <h1 className="text-[28px] font-semibold tracking-tight">Python Midterm</h1>
-        <p className="font-mono text-lg">{mm}:{ss}</p>
+        <p className="font-mono text-lg">
+          {mm}:{ss}
+        </p>
       </div>
       <p className="mt-2 text-sm text-text-muted">
         Question {i + 1} of {questions.length}
@@ -52,7 +68,10 @@ export default function TestPage() {
       </Card>
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
         {["Practice", "Hints", "AI Tutor"].map((item) => (
-          <div key={item} className="flex items-center gap-2 rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm text-text-muted">
+          <div
+            key={item}
+            className="flex items-center gap-2 rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm text-text-muted"
+          >
             <Lock size={14} />
             {item} · Locked
           </div>
@@ -62,7 +81,7 @@ export default function TestPage() {
         <Button type="button" variant="secondary" onClick={() => setI(0)}>
           Question 1
         </Button>
-        <Button type="button" onClick={() => router.push("/student/tests/python-midterm/result")}>
+        <Button type="button" onClick={() => void submitTest()}>
           Submit test
         </Button>
       </div>

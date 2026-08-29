@@ -16,6 +16,27 @@ export default function CodingLabPage() {
   const [lang, setLang] = useState("Python");
   const [code, setCode] = useState(samples.Python);
   const [out, setOut] = useState("Run code to see output.");
+  const [help, setHelp] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function askAi() {
+    setBusy(true);
+    setHelp("");
+    const res = await fetch("/api/ai/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        context: "coding-lab",
+        intent: "debug",
+        language: lang,
+        code,
+        messages: [{ role: "user", content: `Help me understand and debug this ${lang} lab code. Do not write a complete assignment for me.` }],
+      }),
+    });
+    const data = (await res.json()) as { reply?: string; error?: string };
+    setHelp(data.reply || data.error || "AI Tutor could not reply.");
+    setBusy(false);
+  }
 
   return (
     <div>
@@ -30,6 +51,9 @@ export default function CodingLabPage() {
           </Button>
           <Button type="button" variant="ghost">
             Test cases
+          </Button>
+          <Button type="button" variant="ai" disabled={busy} onClick={() => void askAi()}>
+            Ask AI Tutor
           </Button>
         </div>
       </div>
@@ -65,6 +89,11 @@ export default function CodingLabPage() {
       <p className="mt-4 text-sm text-text-secondary">
         Instructions: Implement calculate_sum so it returns the total of a list. Test case: [1, 2, 3] → 6.
       </p>
+      {help ? (
+        <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-border bg-ai-soft p-4 text-sm leading-6 text-text">
+          {help}
+        </pre>
+      ) : null}
     </div>
   );
 }

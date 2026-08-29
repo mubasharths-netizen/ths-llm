@@ -1,10 +1,11 @@
 import { Card, PageHeader } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress";
-import { courses } from "@/lib/data";
+import { courseProgressAverages } from "@/lib/db";
 
 export const metadata = { title: "Admin analytics" };
 
 export default function AdminAnalyticsPage() {
+  const courses = courseProgressAverages();
   return (
     <>
       <PageHeader title="Analytics" description="Institute performance over time." />
@@ -16,7 +17,7 @@ export default function AdminAnalyticsPage() {
               <div key={course.id}>
                 <div className="mb-1 flex justify-between text-sm">
                   <span>{course.title}</span>
-                  <span className="text-text-muted">{course.progress}%</span>
+                  <span className="text-text-muted">{Math.round(course.progress)}%</span>
                 </div>
                 <ProgressBar value={course.progress} />
               </div>

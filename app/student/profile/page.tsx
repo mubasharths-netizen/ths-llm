@@ -1,34 +1,37 @@
+import { ProfileCard } from "@/components/profile/profile-card";
 import { Button } from "@/components/ui/button";
 import { Card, PageHeader, StatCard } from "@/components/ui/card";
-import { student } from "@/lib/data";
+import { avatarUrl } from "@/lib/avatar";
+import { studentDashboard } from "@/lib/db";
+import { currentStudentId } from "@/lib/session-user";
 
 export const metadata = { title: "Profile" };
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const userId = await currentStudentId();
+  const { user, rank, enrollments } = studentDashboard(userId);
+  const name = user?.name ?? "Student";
+  const email = user?.email ?? "";
+  const className = user?.class_name ?? "";
+  const score = user?.score ?? 0;
+
   return (
     <>
-      <PageHeader title="Profile" />
+      <PageHeader title="Profile" description="Your photo, account details, and sign out." />
       <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
-        <Card className="text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-xl font-semibold text-white">
-            AK
-          </div>
-          <p className="mt-3 font-semibold">{student.name}</p>
-          <p className="text-sm text-text-secondary">{student.email}</p>
-          <p className="text-sm text-text-muted">{student.class}</p>
-        </Card>
+        <ProfileCard name={name} email={email} meta={className} avatarUrl={avatarUrl(user?.avatar)} />
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
-            <StatCard label="Score" value="850" />
-            <StatCard label="Rank" value="#4" />
-            <StatCard label="Courses" value="3" />
+            <StatCard label="Score" value={String(score)} />
+            <StatCard label="Rank" value={`#${rank}`} />
+            <StatCard label="Courses" value={String(enrollments.length)} />
           </div>
           <Card>
             <h2 className="font-semibold">Account</h2>
             <div className="mt-4 space-y-3">
               <div>
                 <label className="label">Email</label>
-                <input className="input" defaultValue={student.email} />
+                <input className="input" defaultValue={email} readOnly />
               </div>
               <div>
                 <label className="label">New password</label>

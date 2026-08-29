@@ -1,13 +1,14 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { courses } from "@/lib/data";
+import { publicCourses } from "@/lib/db";
 
 export const metadata = { title: "Courses" };
 
 const categories = ["All", "Programming", "Web", "Cybersecurity", "Data", "AI"];
 
 export default function CoursesPage() {
+  const courses = publicCourses();
   return (
     <div className="marketing-wrap py-16">
       <h1 className="text-4xl font-bold tracking-tight">Courses</h1>
@@ -30,7 +31,7 @@ export default function CoursesPage() {
             </p>
             <p className="mt-3 text-sm text-text-secondary">{course.description}</p>
             <div className="mt-4">
-              <Button href="/register" variant="secondary">
+              <Button href="/login" variant="secondary">
                 View course
               </Button>
             </div>

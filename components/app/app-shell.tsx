@@ -33,6 +33,7 @@ import {
   Trophy,
   User,
   UserCheck,
+  UserPlus,
   UserRoundCog,
   Users,
   X,
@@ -70,6 +71,7 @@ const icons = {
   Megaphone,
   UserRoundCog,
   UserCheck,
+  UserPlus,
   School,
   ClipboardList,
   ChartColumn,
@@ -85,12 +87,16 @@ export function AppShell({
   nav,
   role,
   userName,
+  avatarUrl,
+  profileHref,
   children,
   title,
 }: {
   nav: NavItem[];
   role: string;
   userName: string;
+  avatarUrl?: string;
+  profileHref?: string;
   children: ReactNode;
   title: string;
 }) {
@@ -131,12 +137,13 @@ export function AppShell({
           <p className="mb-2 px-2 text-[11px] font-medium uppercase tracking-[0.06em] text-text-muted">{role}</p>
           <div className="flex flex-col gap-0.5">
             {nav.map((item) => {
-              const Icon = icons[item.icon];
+              const Icon = icons[item.icon] ?? icons.LayoutDashboard;
               const active = isActive(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={false}
                   onClick={() => setOpen(false)}
                   className={cn(
                     "flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium",
@@ -182,19 +189,31 @@ export function AppShell({
               <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-error" />
             </Link>
             <ThemeToggle />
-            <div className="hidden items-center gap-2 sm:flex">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-primary">
-                {userName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .slice(0, 2)}
-              </span>
+            <Link
+              href={profileHref ?? (role === "Student" ? "/student/profile" : role === "Teacher" ? "/teacher/profile" : "/admin/profile")}
+              className="hidden items-center gap-2 sm:flex"
+            >
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  className="h-9 w-9 rounded-full object-cover"
+                />
+              ) : (
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-primary">
+                  {userName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2)}
+                </span>
+              )}
               <div className="leading-tight">
                 <p className="text-sm font-medium">{userName}</p>
                 <p className="text-xs text-text-muted">{role}</p>
               </div>
-            </div>
+            </Link>
           </div>
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8">

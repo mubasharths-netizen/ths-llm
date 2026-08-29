@@ -16,11 +16,11 @@ const welcome: Msg = {
 };
 
 const chips = [
-  "Explain for-loops in Python",
-  "Give me a hint, not the answer",
-  "Why is range(3) 0, 1, 2?",
-  "Explain this SQL JOIN mistake",
-];
+  { text: "Explain for-loops in Python", intent: "explain" },
+  { text: "Give me a hint, not the answer", intent: "hint" },
+  { text: "Generate a practice question on loops", intent: "generate-question" },
+  { text: "What are my weak topics and a short study plan?", intent: "study-plan" },
+] as const;
 
 export function AiTutorChat({ initialPrompt = "" }: { initialPrompt?: string }) {
   const [messages, setMessages] = useState<Msg[]>([welcome]);
@@ -35,7 +35,7 @@ export function AiTutorChat({ initialPrompt = "" }: { initialPrompt?: string }) 
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
   }, [messages, busy]);
 
-  async function send(text: string, history: Msg[]) {
+  async function send(text: string, history: Msg[], intent = "chat") {
     const content = text.trim();
     if (!content || busy) return;
     const nextHistory = [...history.filter((m) => m !== welcome), { role: "user" as const, content }];
@@ -47,14 +47,18 @@ export function AiTutorChat({ initialPrompt = "" }: { initialPrompt?: string }) 
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextHistory }),
+        body: JSON.stringify({
+          messages: nextHistory,
+          context: "tutor",
+          intent,
+        }),
       });
       const data = (await res.json()) as {
         reply?: string;
         error?: string;
-        status?: { remainingToday?: number };
+        remainingToday?: number;
       };
-      if (typeof data.status?.remainingToday === "number") setRemaining(data.status.remainingToday);
+      if (typeof data.remainingToday === "number") setRemaining(data.remainingToday);
       if (data.reply) {
         setMessages((current) => [...current, { role: "assistant", content: data.reply as string }]);
       } else {
@@ -87,7 +91,11 @@ export function AiTutorChat({ initialPrompt = "" }: { initialPrompt?: string }) 
           <div className="mt-3">
             <Alert tone="error">
               {error}{" "}
-              {error.toLowerCase().includes("api key") || error.toLowerCase().includes("turned off") ? (
+              {error.toLowerCase().includes("sign in") ? (
+                <Link href="/login" className="font-semibold underline">
+                  Login
+                </Link>
+              ) : error.toLowerCase().includes("api_key") || error.toLowerCase().includes("turned off") ? (
                 <Link href="/admin/ai-settings" className="font-semibold underline">
                   Open AI Settings
                 </Link>
@@ -110,8 +118,8 @@ export function AiTutorChat({ initialPrompt = "" }: { initialPrompt?: string }) 
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {chips.map((p) => (
-            <button key={p} type="button" onClick={() => void send(p, messages)} disabled={busy}>
-              <Badge tone="outline">{p}</Badge>
+            <button key={p.text} type="button" onClick={() => void send(p.text, messages, p.intent)} disabled={busy}>
+              <Badge tone="outline">{p.text}</Badge>
             </button>
           ))}
         </div>

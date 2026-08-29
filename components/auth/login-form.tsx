@@ -7,16 +7,47 @@ import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-export function LoginForm() {
+const homeByRole = {
+  student: "/student",
+  teacher: "/teacher",
+  admin: "/admin",
+} as const;
+
+export function LoginForm({
+  allowSetup = false,
+  justReset = false,
+}: {
+  allowSetup?: boolean;
+  justReset?: boolean;
+}) {
   const router = useRouter();
   const [show, setShow] = useState(false);
-  const [role, setRole] = useState("student");
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (role === "teacher") router.push("/teacher");
-    else if (role === "admin") router.push("/admin");
-    else router.push("/student");
+    void (async () => {
+      setError("");
+      setPending(true);
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const data = (await res.json()) as { error?: string; user?: { role?: string } };
+      setPending(false);
+      if (!res.ok) {
+        setError(data.error || "Unable to sign in.");
+        return;
+      }
+      const role = data.user?.role;
+      const dest = role && role in homeByRole ? homeByRole[role as keyof typeof homeByRole] : "/student";
+      router.push(dest);
+      router.refresh();
+    })();
   }
 
   return (
@@ -27,20 +58,45 @@ export function LoginForm() {
         </div>
         <Card>
           <h1 className="text-[28px] font-semibold tracking-tight">Login</h1>
-          <p className="mt-1 text-sm text-text-secondary">Students, teachers, and admins use this sign-in.</p>
+          <p className="mt-1 text-sm text-text-secondary">
+            Use the email and password you created. Demo accounts are gone.
+          </p>
+          {justReset ? (
+            <p className="mt-3 text-sm font-medium text-teal">Password updated. Sign in with your new password.</p>
+          ) : null}
+          {error ? <p className="mt-3 text-sm text-error">{error}</p> : null}
           <form className="mt-6 space-y-4" onSubmit={onSubmit}>
             <div>
               <label className="label" htmlFor="email">
                 Email
               </label>
-              <input id="email" type="email" className="input" defaultValue="ayesha@thslab.edu" required />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                className="input"
+                placeholder="you@thslab.edu"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="username"
+                required
+              />
             </div>
             <div>
               <label className="label" htmlFor="password">
                 Password
               </label>
               <div className="relative">
-                <input id="password" type={show ? "text" : "password"} className="input pr-24" defaultValue="password" required />
+                <input
+                  id="password"
+                  name="password"
+                  type={show ? "text" : "password"}
+                  className="input pr-24"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
                 <button
                   type="button"
                   className="absolute top-1/2 right-3 -translate-y-1/2 text-sm font-medium text-primary"
@@ -50,35 +106,27 @@ export function LoginForm() {
                 </button>
               </div>
             </div>
-            <div>
-              <label className="label" htmlFor="role">
-                Demo role
-              </label>
-              <select id="role" className="input" value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 text-text-secondary">
-                <input type="checkbox" className="h-4 w-4" defaultChecked />
+                <input type="checkbox" className="h-4 w-4" suppressHydrationWarning />
                 Remember me
               </label>
               <Link href="/forgot-password" className="font-medium text-primary">
                 Forgot password
               </Link>
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={pending}>
+              {pending ? "Signing in…" : "Login"}
             </Button>
           </form>
-          <p className="mt-4 text-sm text-text-secondary">
-            No account?{" "}
-            <Link href="/register" className="font-medium text-primary">
-              Register
-            </Link>
-          </p>
+          {allowSetup ? (
+            <p className="mt-4 text-sm text-text-secondary">
+              No administrator yet?{" "}
+              <Link href="/register" className="font-medium text-primary">
+                Create administrator
+              </Link>
+            </p>
+          ) : null}
         </Card>
       </div>
     </main>

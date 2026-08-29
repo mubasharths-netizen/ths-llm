@@ -1,0 +1,84 @@
+import { NextResponse } from "next/server";
+import { requireSession } from "@/lib/auth";
+import {
+  createManagedUser,
+  deleteUser,
+  getUserByEmail,
+  listAdminUsers,
+  setUserStatus,
+  toAdminUserRow,
+  writeAudit,
+} from "@/lib/db";
+
+export const runtime = "nodejs";
+
+export async function GET() {
+  const { error } = await requireSession(["admin"]);
+  if (error) return error;
+  return NextResponse.json({ users: listAdminUsers() });
+}
+
+export async function POST(request: Request) {
+  const { user, error } = await requireSession(["admin"]);
+  if (error) return error;
+  try {
+    const body = (await request.json()) as {
+      name?: string;
+      email?: string;
+      role?: string;
+      password?: string;
+      className?: string;
+    };
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const password = typeof body.password === "string" ? body.password : "";
+    const className = typeof body.className === "string" ? body.className.trim() : "";
+    const role =
+      body.role === "Teacher" || body.role === "teacher"
+        ? "teacher"
+        : body.role === "Admin" || body.role === "admin"
+          ? "admin"
+          : "student";
+    if (!name || !email.includes("@") || password.length < 4) {
+      return NextResponse.json({ error: "Name, email, and a password (4+ characters) are required." }, { status: 400 });
+    }
+    if (getUserByEmail(email)) {
+      return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
+    }
+    const created = createManagedUser({ name, email, password, role, className: className || undefined });
+    writeAudit(user!.name, "Created user", created.name);
+    return NextResponse.json({ user: toAdminUserRow(created) });
+  } catch {
+    return NextResponse.json({ error: "Unable to create user." }, { status: 400 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  const { user, error } = await requireSession(["admin"]);
+  if (error) return error;
+  try {
+    const body = (await request.json()) as { id?: string; action?: string };
+    if (!body.id || !body.action) {
+      return NextResponse.json({ error: "User and action are required." }, { status: 400 });
+    }
+    if (body.action === "delete") {
+      deleteUser(body.id);
+      writeAudit(user!.name, "Deleted user", body.id);
+      return NextResponse.json({ ok: true });
+    }
+    const status =
+      body.action === "disable"
+        ? "Disabled"
+        : body.action === "approve"
+          ? "Active"
+          : body.action === "reject"
+            ? "Rejected"
+            : "Active";
+    const updated = setUserStatus(body.id, status);
+    if (!updated) return NextResponse.json({ error: "User not found." }, { status: 404 });
+    writeAudit(user!.name, `${body.action} user`, updated.name);
+    return NextResponse.json({ user: toAdminUserRow(updated) });
+  } catch {
+    return NextResponse.json({ error: "Unable to update user." }, { status: 400 });
+  }
+}

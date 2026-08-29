@@ -7,7 +7,6 @@ export type { AiAnswerMode, AiProvider };
 export type AiConfig = {
   enabled: boolean;
   provider: AiProvider;
-  apiKey: string;
   ollamaUrl: string;
   ollamaModel: string;
   dailyLimit: number;
@@ -22,7 +21,6 @@ const filePath = path.join(process.cwd(), "data", "ai-config.json");
 const defaults: AiConfig = {
   enabled: true,
   provider: "gemini",
-  apiKey: "",
   ollamaUrl: "http://127.0.0.1:11434",
   ollamaModel: "llama3.2",
   dailyLimit: 80,
@@ -36,13 +34,28 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function isUsableKey(value?: string) {
+  const key = value?.trim() || "";
+  if (!key) return false;
+  if (/your_.*key/i.test(key) || key.includes("YOUR_")) return false;
+  return true;
+}
+
+function envKeySet() {
+  return Boolean(
+    isUsableKey(process.env.AI_API_KEY) ||
+      isUsableKey(process.env.GEMINI_API_KEY) ||
+      isUsableKey(process.env.GOOGLE_GENERATIVE_AI_API_KEY) ||
+      isUsableKey(process.env.OPENAI_API_KEY) ||
+      isUsableKey(process.env.GROQ_API_KEY),
+  );
+}
+
 export function publicAiConfig(config: AiConfig) {
-  const key = config.apiKey.trim();
   return {
     enabled: config.enabled,
     provider: config.provider,
-    apiKeySet: key.length > 0,
-    apiKeyHint: key ? `••••${key.slice(-4)}` : "",
+    apiKeySet: envKeySet(),
     ollamaUrl: config.ollamaUrl,
     ollamaModel: config.ollamaModel,
     dailyLimit: config.dailyLimit,
@@ -53,20 +66,16 @@ export function publicAiConfig(config: AiConfig) {
     ),
     answerMode: config.answerMode,
     safetyEnabled: config.safetyEnabled,
-    envKeySet: Boolean(
-      process.env.GEMINI_API_KEY ||
-        process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
-        process.env.OPENAI_API_KEY ||
-        process.env.GROQ_API_KEY,
-    ),
+    envKeySet: envKeySet(),
   };
 }
 
 export async function readAiConfig(): Promise<AiConfig> {
   try {
     const raw = await readFile(filePath, "utf8");
-    const parsed = JSON.parse(raw) as Partial<AiConfig>;
-    return { ...defaults, ...parsed };
+    const parsed = JSON.parse(raw) as Partial<AiConfig> & { apiKey?: string };
+    const { apiKey: _ignored, ...safe } = parsed;
+    return { ...defaults, ...safe };
   } catch {
     return { ...defaults };
   }
@@ -86,12 +95,32 @@ export async function incrementAiUsage() {
   return next;
 }
 
-export function resolveApiKey(config: AiConfig) {
-  if (config.apiKey.trim()) return config.apiKey.trim();
-  if (config.provider === "gemini") {
-    return process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "";
+export function resolveApiKey() {
+  const keys = [
+    process.env.AI_API_KEY,
+    process.env.GEMINI_API_KEY,
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    process.env.OPENAI_API_KEY,
+    process.env.GROQ_API_KEY,
+  ];
+  return keys.map((value) => value?.trim() || "").find(isUsableKey) || "";
+}
+
+export function resolveProvider(configured: AiProvider): AiProvider {
+  const fromEnv = process.env.AI_PROVIDER?.trim().toLowerCase();
+  if (fromEnv === "gemini" || fromEnv === "openai" || fromEnv === "groq" || fromEnv === "ollama") {
+    return fromEnv;
   }
-  if (config.provider === "openai") return process.env.OPENAI_API_KEY || "";
-  if (config.provider === "groq") return process.env.GROQ_API_KEY || "";
-  return "";
+  const key = resolveApiKey();
+  if (key.startsWith("sk-")) return "openai";
+  if (key.startsWith("gsk_")) return "groq";
+  if (key.startsWith("AIza")) return "gemini";
+  return configured;
+}
+
+export function sanitizeProviderError(message: string) {
+  if (/api[_-]?key|sk-|gsk_|AIza|bearer/i.test(message)) {
+    return "The AI provider rejected the request. Check AI_API_KEY in .env.local.";
+  }
+  return message.slice(0, 180);
 }

@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 export const metadata = { title: "How it works" };
 
 const steps = [
-  ["Register", "Create a student or teacher account."],
+  ["Login", "Sign in with the account created by your administrator."],
   ["Learn", "Follow course modules and complete lessons."],
   ["Practice", "Attempt questions with optional hints."],
   ["Get help", "Ask THS AI Tutor to explain a concept or mistake."],

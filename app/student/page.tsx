@@ -4,31 +4,38 @@ import { Card, PageHeader, StatCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress";
 import { DataTable, Td, Tr } from "@/components/ui/table";
-import { courses, student } from "@/lib/data";
+import { studentDashboard } from "@/lib/db";
+import { currentStudentId } from "@/lib/session-user";
 
 export const metadata = { title: "Student dashboard" };
 
-export default function StudentDashboard() {
+export default async function StudentDashboard() {
+  const userId = await currentStudentId();
+  const { user, enrollments, rank, totalStudents } = studentDashboard(userId);
+  const name = user?.name.split(" ")[0] ?? "Student";
+  const score = user?.score ?? 0;
+  const inProgress = enrollments.filter((course) => course.progress > 0 && course.progress < 100).length;
+
   return (
     <>
       <PageHeader
-        title={`Good afternoon, ${student.name.split(" ")[0]}`}
-        description={`${student.class} · Keep the loop: learn, practice, test, improve.`}
+        title={`Good afternoon, ${name}`}
+        description={`${user?.class_name ?? "BSIT"} · Keep the loop: learn, practice, test, improve.`}
       />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total score" value={`${student.score} / ${student.maxScore}`} hint="85%" />
-        <StatCard label="Class rank" value={`#${student.rank}`} hint={`of ${student.totalStudents} students`} />
-        <StatCard label="Courses in progress" value="3" />
+        <StatCard label="Total score" value={`${score} / 1000`} hint={`${Math.round(score / 10)}%`} />
+        <StatCard label="Class rank" value={`#${rank}`} hint={`of ${totalStudents} students`} />
+        <StatCard label="Courses in progress" value={String(inProgress)} />
         <StatCard label="Upcoming tests" value="2" hint="Python Midterm in 2 days" />
       </div>
 
       <h2 className="mt-8 mb-4 text-xl font-semibold">Current courses</h2>
       <div className="grid gap-4 md:grid-cols-3">
-        {courses.slice(0, 3).map((course) => (
+        {enrollments.slice(0, 3).map((course) => (
           <Card key={course.id}>
             <Badge>{course.level}</Badge>
             <h3 className="mt-3 font-semibold">{course.title}</h3>
-            <p className="text-sm text-text-secondary">{course.teacher}</p>
+            <p className="text-sm text-text-secondary">{course.teacher_name}</p>
             <div className="mt-4">
               <ProgressBar value={course.progress} />
               <p className="mt-2 text-xs text-text-muted">{course.progress}% complete</p>

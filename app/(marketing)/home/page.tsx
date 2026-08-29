@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress";
-import { courses } from "@/lib/data";
+import { publicCourses } from "@/lib/db";
 
 const steps = ["Learn", "Practice", "Get Help", "Test", "Improve"];
 
 export default function HomePage() {
+  const courses = publicCourses();
   return (
     <>
       <section className="border-b border-border bg-surface">
@@ -22,7 +23,7 @@ export default function HomePage() {
               improve through analytics — without noise or gamification.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button href="/register">Get Started</Button>
+              <Button href="/login">Get Started</Button>
               <Button href="/courses" variant="secondary">
                 Browse courses
               </Button>
@@ -137,9 +138,9 @@ export default function HomePage() {
 
       <section className="marketing-wrap py-16 text-center">
         <h2 className="text-[28px] font-semibold tracking-tight">Start learning with THS LAB LMS</h2>
-        <p className="mt-2 text-text-secondary">Create an account and continue from your student dashboard.</p>
+        <p className="mt-2 text-text-secondary">Sign in with the account your administrator created for you.</p>
         <div className="mt-6 flex justify-center">
-          <Button href="/register">Get Started</Button>
+          <Button href="/login">Login</Button>
         </div>
       </section>
     </>

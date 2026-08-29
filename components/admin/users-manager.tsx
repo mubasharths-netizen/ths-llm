@@ -2,50 +2,75 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, PageHeader } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, Td, Tr } from "@/components/ui/table";
-import { adminUsers } from "@/lib/admin-data";
-
-type User = (typeof adminUsers)[number];
+import type { AdminUserRow } from "@/lib/db-types";
 
 export function UsersManager({
   title,
   description,
   initialRole,
+  initialUsers,
 }: {
   title: string;
   description: string;
-  initialRole?: User["role"] | "All";
+  initialRole?: AdminUserRow["role"] | "All";
+  initialUsers: AdminUserRow[];
 }) {
-  const [tab, setTab] = useState<User["role"] | "All">(initialRole ?? "All");
-  const [rows, setRows] = useState(adminUsers);
-  const [form, setForm] = useState({ name: "", email: "", role: "Student" as User["role"] });
+  const [tab, setTab] = useState<AdminUserRow["role"] | "All">(initialRole ?? "All");
+  const [rows, setRows] = useState(initialUsers);
 
   const filtered = useMemo(
     () => (tab === "All" ? rows : rows.filter((u) => u.role === tab)),
     [rows, tab],
   );
 
-  function addUser() {
-    if (!form.name.trim() || !form.email.trim()) return;
-    setRows((current) => [
-      {
-        id: `new-${Date.now()}`,
-        name: form.name,
-        email: form.email,
-        role: form.role,
-        class: form.role === "Student" ? "BSIT-4A" : form.role === "Teacher" ? "Faculty" : "Ops",
-        status: "Active",
-      },
-      ...current,
-    ]);
-    setForm({ name: "", email: "", role: form.role });
+  async function patchUser(id: string, action: string) {
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action }),
+    });
+    if (!res.ok) return;
+    if (action === "delete") {
+      setRows((current) => current.filter((row) => row.id !== id));
+      return;
+    }
+    const data = (await res.json()) as { user?: AdminUserRow };
+    if (data.user) {
+      setRows((current) => current.map((row) => (row.id === id ? data.user! : row)));
+    }
   }
 
   return (
     <>
-      <PageHeader title={title} description={description} />
+      <PageHeader
+        title={title}
+        description={description}
+        actions={
+          <Button
+            href={
+              initialRole === "Student"
+                ? "/admin/add/student"
+                : initialRole === "Teacher"
+                  ? "/admin/add/teacher"
+                  : initialRole === "Admin"
+                    ? "/admin/add/admin"
+                    : "/admin/add"
+            }
+            variant="secondary"
+          >
+            {initialRole === "Student"
+              ? "Add student"
+              : initialRole === "Teacher"
+                ? "Add teacher"
+                : initialRole === "Admin"
+                  ? "Add admin"
+                  : "Add account"}
+          </Button>
+        }
+      />
       {!initialRole || initialRole === "All" ? (
         <div className="mb-4 flex flex-wrap gap-2">
           {(["All", "Student", "Teacher", "Admin"] as const).map((role) => (
@@ -55,21 +80,6 @@ export function UsersManager({
           ))}
         </div>
       ) : null}
-      <Card className="mb-6">
-        <h2 className="font-semibold">Add user</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-4">
-          <input className="input" placeholder="Full name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <input className="input" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <select className="input" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as User["role"] })}>
-            <option>Student</option>
-            <option>Teacher</option>
-            <option>Admin</option>
-          </select>
-          <Button type="button" onClick={addUser}>
-            Add
-          </Button>
-        </div>
-      </Card>
       <DataTable headers={["Name", "Email", "Role", "Class", "Status", "Actions"]}>
         {filtered.map((user) => (
           <Tr key={user.id}>
@@ -85,23 +95,11 @@ export function UsersManager({
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() =>
-                    setRows((current) =>
-                      current.map((row) =>
-                        row.id === user.id
-                          ? { ...row, status: row.status === "Active" ? "Disabled" : "Active" }
-                          : row,
-                      ),
-                    )
-                  }
+                  onClick={() => void patchUser(user.id, user.status === "Active" ? "disable" : "enable")}
                 >
                   {user.status === "Active" ? "Disable" : "Enable"}
                 </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setRows((current) => current.filter((row) => row.id !== user.id))}
-                >
+                <Button type="button" variant="ghost" onClick={() => void patchUser(user.id, "delete")}>
                   Delete
                 </Button>
               </div>

@@ -32,9 +32,15 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+.env.local
 
 # local AI provider secrets
 /data/ai-config.json
+
+# sqlite
+/data/ths.db
+/data/ths.db-journal
+/data/avatars/
 
 # vercel
 .vercel

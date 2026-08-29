@@ -1,19 +1,22 @@
 import { Card, PageHeader, StatCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { student } from "@/lib/data";
+import { studentDashboard } from "@/lib/db";
+import { currentStudentId } from "@/lib/session-user";
 
 export const metadata = { title: "Total score" };
 
-export default function ScorePage() {
+export default async function ScorePage() {
+  const userId = await currentStudentId();
+  const { user } = studentDashboard(userId);
+  const score = user?.score ?? 0;
+
   return (
     <>
       <PageHeader title="Total Score" />
       <Card className="mb-6 text-center">
         <p className="text-xs uppercase tracking-[0.06em] text-text-muted">Total score</p>
-        <p className="mt-2 text-5xl font-semibold tracking-tight">
-          {student.score} / {student.maxScore}
-        </p>
-        <p className="mt-2 text-text-secondary">Overall 85%</p>
+        <p className="mt-2 text-5xl font-semibold tracking-tight">{score} / 1000</p>
+        <p className="mt-2 text-text-secondary">Overall {Math.round(score / 10)}%</p>
       </Card>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Practice" value="180" />

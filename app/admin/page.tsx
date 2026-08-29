@@ -1,39 +1,52 @@
 import { Button } from "@/components/ui/button";
 import { Card, PageHeader, StatCard } from "@/components/ui/card";
 import { DataTable, Td, Tr } from "@/components/ui/table";
-import { adminUsers, auditLogs } from "@/lib/admin-data";
-import { courses } from "@/lib/data";
+import { adminOverview } from "@/lib/db";
 
 export const metadata = { title: "Admin dashboard" };
 
 export default function AdminDashboardPage() {
-  const students = adminUsers.filter((u) => u.role === "Student").length;
-  const teachers = adminUsers.filter((u) => u.role === "Teacher").length;
-  const active = adminUsers.filter((u) => u.status === "Active").length;
+  const overview = adminOverview();
+  const logs = overview.logs as Array<{
+    actor: string;
+    action: string;
+    target: string;
+    created_at: string;
+  }>;
 
   return (
     <>
       <PageHeader
         title="Admin dashboard"
         description="Institute overview for THS LAB LMS."
-        actions={<Button href="/admin/ai-settings">AI Settings</Button>}
+        actions={
+          <>
+            <Button href="/admin/add/student">Add student</Button>
+            <Button href="/admin/add/teacher" variant="secondary">
+              Add teacher
+            </Button>
+            <Button href="/admin/add/admin" variant="secondary">
+              Add admin
+            </Button>
+          </>
+        }
       />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="Total students" value={String(students)} hint="Across all classes" />
-        <StatCard label="Total teachers" value={String(teachers)} />
-        <StatCard label="Total courses" value={String(courses.length)} />
-        <StatCard label="Active users" value={String(active)} />
-        <StatCard label="Average score" value="81" hint="Last 30 days" />
-        <StatCard label="System activity" value="24" hint="Events today" />
+        <StatCard label="Total students" value={String(overview.students)} hint="Across all classes" />
+        <StatCard label="Total teachers" value={String(overview.teachers)} />
+        <StatCard label="Total courses" value={String(overview.courses)} />
+        <StatCard label="Active users" value={String(overview.active)} />
+        <StatCard label="Average score" value={String(overview.averageScore)} hint="From student records" />
+        <StatCard label="System activity" value={String(logs.length)} hint="Recent audit events" />
       </div>
       <h2 className="mt-8 mb-4 text-xl font-semibold">Recent activity</h2>
       <DataTable headers={["Actor", "Action", "Target", "Time"]}>
-        {auditLogs.map((log) => (
-          <Tr key={`${log.time}-${log.action}`}>
+        {logs.map((log) => (
+          <Tr key={`${log.created_at}-${log.action}-${log.target}`}>
             <Td>{log.actor}</Td>
             <Td>{log.action}</Td>
             <Td>{log.target}</Td>
-            <Td className="text-text-muted">{log.time}</Td>
+            <Td className="text-text-muted">{log.created_at}</Td>
           </Tr>
         ))}
       </DataTable>
@@ -42,6 +55,9 @@ export default function AdminDashboardPage() {
         <div className="mt-4 flex flex-wrap gap-2">
           <Button href="/admin/approvals" variant="secondary">
             Teacher approval
+          </Button>
+          <Button href="/admin/add" variant="secondary">
+            Add account
           </Button>
           <Button href="/admin/users" variant="secondary">
             Manage users

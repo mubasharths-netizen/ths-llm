@@ -49,9 +49,11 @@ export const teacherNav: NavItem[] = [
 
 export const adminNav: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: "LayoutDashboard" },
-  { href: "/admin/users", label: "Users", icon: "Users" },
   { href: "/admin/students", label: "Students", icon: "GraduationCap" },
   { href: "/admin/teachers", label: "Teachers", icon: "UserRoundCog" },
+  { href: "/admin/admins", label: "Admins", icon: "User" },
+  { href: "/admin/add", label: "Add account", icon: "UserPlus" },
+  { href: "/admin/users", label: "All users", icon: "Users" },
   { href: "/admin/approvals", label: "Teacher Approval", icon: "UserCheck" },
   { href: "/admin/courses", label: "Courses", icon: "BookOpen" },
   { href: "/admin/classes", label: "Classes", icon: "School" },
@@ -64,5 +66,6 @@ export const adminNav: NavItem[] = [
   { href: "/admin/permissions", label: "Permissions", icon: "Shield" },
   { href: "/admin/security", label: "Security", icon: "Lock" },
   { href: "/admin/audit-logs", label: "Audit Logs", icon: "ScrollText" },
+  { href: "/admin/profile", label: "Profile", icon: "User" },
   { href: "/admin/settings", label: "Settings", icon: "Settings" },
 ];

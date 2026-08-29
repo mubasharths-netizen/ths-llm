@@ -26,9 +26,7 @@ export default function WelcomePage() {
           guidance and improve their academic performance.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button href="/register" className="w-full sm:w-auto">
-            Get Started
-          </Button>
+          <Button href="/login">Get Started</Button>
           <Link
             href="/login"
             className="btn w-full border border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto"
