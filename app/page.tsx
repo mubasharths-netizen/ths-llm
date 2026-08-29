@@ -1,69 +1,43 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
-export default function Home() {
+export default function WelcomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0B1B4A] text-white">
+      <div className="welcome-grid absolute inset-0 opacity-40" />
+      <div className="absolute inset-0 bg-[#0B1B4A]/70" />
+      <svg className="absolute inset-0 h-full w-full opacity-25" aria-hidden>
+        <line x1="8%" y1="20%" x2="40%" y2="70%" stroke="#93C5FD" strokeWidth="0.6" />
+        <line x1="70%" y1="10%" x2="90%" y2="55%" stroke="#5EEAD4" strokeWidth="0.6" />
+        <line x1="15%" y1="80%" x2="60%" y2="40%" stroke="#93C5FD" strokeWidth="0.6" />
+        <circle cx="18%" cy="28%" r="3" fill="#93C5FD" />
+        <circle cx="72%" cy="18%" r="3" fill="#5EEAD4" />
+        <circle cx="86%" cy="62%" r="3" fill="#93C5FD" />
+      </svg>
+      <div className="absolute top-10 left-[8%] hidden font-mono text-xs text-blue-200/50 md:block">{`def learn():`}</div>
+      <div className="absolute right-[10%] bottom-16 hidden font-mono text-xs text-teal-200/50 md:block">{`SELECT * FROM skills;`}</div>
+
+      <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
+        <p className="text-sm font-medium tracking-[0.18em] text-blue-200 uppercase">THS LAB LMS</p>
+        <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">Welcome to THS LAB LMS</h1>
+        <p className="mt-3 text-xl text-blue-100">Learn. Practice. Improve.</p>
+        <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-200">
+          A professional IT learning platform where students learn technology, practice skills, receive AI
+          guidance and improve their academic performance.
+        </p>
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Button href="/register" className="w-full sm:w-auto">
+            Get Started
+          </Button>
+          <Link
+            href="/login"
+            className="btn w-full border border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Login
+          </Link>
         </div>
-      </main>
-    </div>
+        <p className="mt-6 text-xs text-blue-200/80">Professional IT education · Focused · Calm · Intelligent</p>
+      </div>
+    </main>
   );
 }

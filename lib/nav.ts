@@ -1,0 +1,68 @@
+import type { NavItem } from "@/components/app/app-shell";
+
+export const marketingLinks = [
+  { href: "/home", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/courses", label: "Courses" },
+  { href: "/features", label: "Features" },
+  { href: "/how-it-works", label: "How It Works" },
+  { href: "/contact", label: "Contact" },
+];
+
+export const studentNav: NavItem[] = [
+  { href: "/student", label: "Dashboard", icon: "LayoutDashboard" },
+  { href: "/student/courses", label: "My Courses", icon: "BookOpen" },
+  { href: "/student/lessons", label: "Lessons", icon: "PlayCircle" },
+  { href: "/student/practice", label: "Practice", icon: "PenLine" },
+  { href: "/student/quizzes", label: "Quizzes", icon: "ListChecks" },
+  { href: "/student/tests", label: "Tests", icon: "ClipboardCheck" },
+  { href: "/student/assignments", label: "Assignments", icon: "FileText" },
+  { href: "/student/ai-tutor", label: "AI Tutor", icon: "Bot" },
+  { href: "/student/coding-lab", label: "Coding Lab", icon: "Code2" },
+  { href: "/student/mistakes", label: "My Mistakes", icon: "CircleAlert" },
+  { href: "/student/planner", label: "Study Planner", icon: "CalendarDays" },
+  { href: "/student/score", label: "Total Score", icon: "Gauge" },
+  { href: "/student/ranking", label: "Class Ranking", icon: "Trophy" },
+  { href: "/student/progress", label: "Progress", icon: "ChartLine" },
+  { href: "/student/certificates", label: "Certificates", icon: "Award" },
+  { href: "/student/notifications", label: "Notifications", icon: "Bell" },
+  { href: "/student/profile", label: "Profile", icon: "User" },
+];
+
+export const teacherNav: NavItem[] = [
+  { href: "/teacher", label: "Dashboard", icon: "LayoutDashboard" },
+  { href: "/teacher/courses", label: "Courses", icon: "BookOpen" },
+  { href: "/teacher/classes", label: "Classes", icon: "Users" },
+  { href: "/teacher/students", label: "Students", icon: "GraduationCap" },
+  { href: "/teacher/lessons", label: "Lessons", icon: "PlayCircle" },
+  { href: "/teacher/practice", label: "Practice Questions", icon: "PenLine" },
+  { href: "/teacher/quizzes", label: "Quizzes", icon: "ListChecks" },
+  { href: "/teacher/tests", label: "Tests", icon: "ClipboardCheck" },
+  { href: "/teacher/exams", label: "Exams", icon: "FileBadge" },
+  { href: "/teacher/assignments", label: "Assignments", icon: "FileText" },
+  { href: "/teacher/grades", label: "Grades", icon: "Table2" },
+  { href: "/teacher/feedback", label: "Feedback", icon: "MessageSquare" },
+  { href: "/teacher/analytics", label: "Analytics", icon: "ChartLine" },
+  { href: "/teacher/announcements", label: "Announcements", icon: "Megaphone" },
+  { href: "/teacher/profile", label: "Profile", icon: "User" },
+];
+
+export const adminNav: NavItem[] = [
+  { href: "/admin", label: "Dashboard", icon: "LayoutDashboard" },
+  { href: "/admin/users", label: "Users", icon: "Users" },
+  { href: "/admin/students", label: "Students", icon: "GraduationCap" },
+  { href: "/admin/teachers", label: "Teachers", icon: "UserRoundCog" },
+  { href: "/admin/approvals", label: "Teacher Approval", icon: "UserCheck" },
+  { href: "/admin/courses", label: "Courses", icon: "BookOpen" },
+  { href: "/admin/classes", label: "Classes", icon: "School" },
+  { href: "/admin/assessments", label: "Assessments", icon: "ClipboardList" },
+  { href: "/admin/results", label: "Results", icon: "ChartColumn" },
+  { href: "/admin/rankings", label: "Rankings", icon: "Trophy" },
+  { href: "/admin/certificates", label: "Certificates", icon: "Award" },
+  { href: "/admin/ai-settings", label: "AI Settings", icon: "Bot" },
+  { href: "/admin/analytics", label: "Analytics", icon: "ChartLine" },
+  { href: "/admin/permissions", label: "Permissions", icon: "Shield" },
+  { href: "/admin/security", label: "Security", icon: "Lock" },
+  { href: "/admin/audit-logs", label: "Audit Logs", icon: "ScrollText" },
+  { href: "/admin/settings", label: "Settings", icon: "Settings" },
+];
