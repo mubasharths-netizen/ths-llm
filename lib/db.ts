@@ -2,12 +2,13 @@ import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 import { hashPassword } from "@/lib/password";
+import { dataDir } from "@/lib/data-dir";
+import { SCHEMA_SQL } from "@/lib/schema-sql";
 import type { AdminUserRow, CourseCard } from "@/lib/db-types";
 
 export type { AdminUserRow, CourseCard };
 
-const dbPath = path.join(process.cwd(), "data", "ths.db");
-const schemaPath = path.join(process.cwd(), "lib", "schema.sql");
+const dbPath = path.join(dataDir(), "ths.db");
 
 type GlobalDb = { db?: DatabaseSync; seeded?: boolean };
 
@@ -32,7 +33,7 @@ function openDb() {
   const db = new DatabaseSync(dbPath);
   db.exec("PRAGMA foreign_keys = ON;");
   db.exec("PRAGMA journal_mode = WAL;");
-  db.exec(fs.readFileSync(schemaPath, "utf8"));
+  db.exec(SCHEMA_SQL);
   migrateUsers(db);
   return db;
 }
@@ -105,7 +106,23 @@ export function listCourses() {
     .all() as Array<Record<string, unknown>>;
 }
 
-export function getCourse(id: string) {
+export type CourseDetail = {
+  id: string;
+  title: string;
+  description: string;
+  teacher_name: string;
+  category: string;
+  level: string;
+  duration: string;
+  lesson_count: number;
+  modules: Array<{
+    id: string;
+    title: string;
+    lessons: Array<{ id: string; title: string; duration: string }>;
+  }>;
+};
+
+export function getCourse(id: string): CourseDetail | null {
   ensureSeeded();
   const course = db()
     .prepare(
@@ -120,12 +137,23 @@ export function getCourse(id: string) {
     .prepare("SELECT * FROM modules WHERE course_id = ? ORDER BY sort_order")
     .all(id) as Array<{ id: string; title: string }>;
   const withLessons = modules.map((mod) => ({
-    ...mod,
+    id: mod.id,
+    title: mod.title,
     lessons: db()
-      .prepare("SELECT * FROM lessons WHERE module_id = ? ORDER BY sort_order")
-      .all(mod.id),
+      .prepare("SELECT id, title, duration FROM lessons WHERE module_id = ? ORDER BY sort_order")
+      .all(mod.id) as Array<{ id: string; title: string; duration: string }>,
   }));
-  return { ...course, modules: withLessons };
+  return {
+    id: String(course.id),
+    title: String(course.title),
+    description: String(course.description ?? ""),
+    teacher_name: String(course.teacher_name ?? ""),
+    category: String(course.category),
+    level: String(course.level),
+    duration: String(course.duration),
+    lesson_count: Number(course.lesson_count ?? 0),
+    modules: withLessons,
+  };
 }
 
 export function teacherCourses(teacherId: string) {
@@ -227,11 +255,7 @@ export function getCourseForStudent(courseId: string, userId: string) {
     .prepare("SELECT lesson_id FROM lesson_progress WHERE user_id = ? AND completed = 1")
     .all(userId) as Array<{ lesson_id: string }>;
   const completed = new Set(doneRows.map((row) => row.lesson_id));
-  const modules = (course.modules as Array<{
-    id: string;
-    title: string;
-    lessons: Array<{ id: string; title: string; duration: string }>;
-  }>).map((mod) => ({
+  const modules = course.modules.map((mod) => ({
     id: mod.id,
     title: mod.title,
     lessons: mod.lessons.map((lesson) => ({
@@ -242,7 +266,19 @@ export function getCourseForStudent(courseId: string, userId: string) {
     })),
   }));
   return {
-    ...mapCourse(course, enroll?.progress ?? 0),
+    ...mapCourse(
+      {
+        id: course.id,
+        title: course.title,
+        teacher_name: course.teacher_name,
+        category: course.category,
+        level: course.level,
+        duration: course.duration,
+        lesson_count: course.lesson_count,
+        description: course.description,
+      },
+      enroll?.progress ?? 0,
+    ),
     modules,
   };
 }
@@ -420,7 +456,7 @@ export function writeAudit(actor: string, action: string, target: string, ip = "
 
 export function studentAssignments(userId: string) {
   ensureSeeded();
-  return db()
+  return (db()
     .prepare(
       `SELECT a.id, a.title, a.deadline, c.title AS course, s.status
        FROM assignments a
@@ -428,24 +464,24 @@ export function studentAssignments(userId: string) {
        LEFT JOIN submissions s ON s.assignment_id = a.id AND s.user_id = ?
        ORDER BY a.deadline`,
     )
-    .all(userId)
-    .map((row) => asPlain(row as object));
+    .all(userId) as object[])
+    .map((row) => asPlain(row));
 }
 
 export function studentNotifications(userId: string) {
   ensureSeeded();
-  return db()
+  return (db()
     .prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC")
-    .all(userId)
-    .map((row) => asPlain(row as object));
+    .all(userId) as object[])
+    .map((row) => asPlain(row));
 }
 
 export function studentMistakes(userId: string) {
   ensureSeeded();
-  return db()
+  return (db()
     .prepare("SELECT * FROM mistakes WHERE user_id = ?")
-    .all(userId)
-    .map((row) => asPlain(row as object));
+    .all(userId) as object[])
+    .map((row) => asPlain(row));
 }
 
 export function adminOverview() {

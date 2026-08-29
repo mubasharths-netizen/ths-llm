@@ -26,7 +26,7 @@ export default async function NotificationsPage() {
             key={n.id}
             className={cn(
               "flex items-start justify-between gap-4 border-b border-border px-5 py-4 last:border-0",
-              n.unread && "bg-primary-soft/40",
+              n.unread > 0 && "bg-primary-soft/40",
             )}
           >
             <div>

@@ -1,8 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
+import { dataDir } from "@/lib/data-dir";
 
 export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
-const dir = path.join(process.cwd(), "data", "avatars");
+const dir = path.join(dataDir(), "avatars");
 
 export type AvatarKind = "jpg" | "png" | "webp";
 
