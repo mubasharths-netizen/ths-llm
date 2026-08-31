@@ -33,7 +33,8 @@ function tutorSystemPrompt(config: AiConfig, request: AiChatRequest) {
     "study-plan": "Recommend a short study plan for the weak topics.",
   };
 
-  return `You are THS AI Tutor for THS LAB LMS, a professional IT learning platform.
+  return `You are Mubashar, the AI Tutor for THS LAB LMS, a professional IT learning platform.
+Introduce yourself as Mubashar when asked your name. You are a calm, precise teaching assistant.
 
 Student context:
 - Current course: Python Fundamentals
@@ -90,6 +91,59 @@ async function callGemini(apiKey: string, system: string, messages: ChatMessage[
   throw new Error(lastError);
 }
 
+type ChatCompletionResponse = {
+  error?: { message?: string };
+  choices?: Array<{
+    finish_reason?: string;
+    message?: {
+      content?: string | Array<{ type?: string; text?: string }>;
+      reasoning?: string;
+      reasoning_content?: string;
+    };
+  }>;
+};
+
+function extractAssistantText(data: ChatCompletionResponse) {
+  const message = data.choices?.[0]?.message;
+  if (!message) return "";
+  const raw = message.content;
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  if (Array.isArray(raw)) {
+    const joined = raw
+      .map((part) => (typeof part === "string" ? part : part.text || ""))
+      .join("")
+      .trim();
+    if (joined) return joined;
+  }
+  return "";
+}
+
+function groqModelList() {
+  return [
+    process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-20b",
+    "openai/gpt-oss-20b",
+    "openai/gpt-oss-120b",
+    "qwen/qwen3.6-27b",
+  ].filter((model, index, list) => Boolean(model) && list.indexOf(model) === index);
+}
+
+async function postChatCompletion(
+  url: string,
+  apiKey: string,
+  body: Record<string, unknown>,
+) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+  const data = (await res.json()) as ChatCompletionResponse;
+  return { res, data };
+}
+
 async function callOpenAiCompatible(
   url: string,
   apiKey: string,
@@ -98,29 +152,32 @@ async function callOpenAiCompatible(
   messages: ChatMessage[],
 ) {
   let lastError = "Chat provider request failed.";
+  const payloadMessages = [{ role: "system", content: system }, ...messages];
+
   for (const model of models) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.4,
-        messages: [{ role: "system", content: system }, ...messages],
-      }),
-    });
-    const data = (await res.json()) as {
-      error?: { message?: string };
-      choices?: Array<{ message?: { content?: string } }>;
+    const isGptOss = /gpt-oss/i.test(model);
+    const isQwen = /qwen/i.test(model);
+    const body: Record<string, unknown> = {
+      model,
+      temperature: 0.4,
+      max_completion_tokens: 2048,
+      messages: payloadMessages,
     };
+    if (isGptOss) body.reasoning_effort = "low";
+    if (isQwen) body.reasoning_effort = "none";
+
+    let { res, data } = await postChatCompletion(url, apiKey, body);
+    if (!res.ok && /reasoning/i.test(data.error?.message || "")) {
+      delete body.reasoning_effort;
+      ({ res, data } = await postChatCompletion(url, apiKey, body));
+    }
     if (!res.ok) {
       lastError = data.error?.message || lastError;
       continue;
     }
-    const text = data.choices?.[0]?.message?.content?.trim();
+    const text = extractAssistantText(data);
     if (text) return text;
+    lastError = "The model returned an empty reply. Try again.";
   }
   throw new Error(lastError);
 }
@@ -172,13 +229,16 @@ export async function runTutorChat(request: AiChatRequest) {
     if (provider === "ollama") {
       reply = await callOllama(config, system, history);
     } else {
-      const apiKey = resolveApiKey();
+      const apiKey = resolveApiKey(provider);
       if (!apiKey) {
         try {
           reply = await callOllama(config, system, history);
         } catch {
           return {
-            error: "AI_API_KEY is not set. Add it to .env.local and restart the server.",
+            error:
+              provider === "groq"
+                ? "GROQ_API_KEY is not set. Add it to .env.local and restart the server."
+                : "AI_API_KEY is not set. Add it to .env.local and restart the server.",
             status,
             reply: "",
           };
@@ -189,11 +249,7 @@ export async function runTutorChat(request: AiChatRequest) {
         reply = await callOpenAiCompatible(
           "https://api.groq.com/openai/v1/chat/completions",
           apiKey,
-          [
-            process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-20b",
-            "openai/gpt-oss-120b",
-            "qwen/qwen3.6-27b",
-          ],
+          groqModelList(),
           system,
           history,
         );

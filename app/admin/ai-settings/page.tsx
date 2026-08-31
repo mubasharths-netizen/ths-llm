@@ -93,7 +93,7 @@ export default function AiSettingsPage() {
       body: JSON.stringify({
         context: "tutor",
         intent: "chat",
-        messages: [{ role: "user", content: "Reply with one short sentence confirming THS AI Tutor is working." }],
+        messages: [{ role: "user", content: "Reply with one short sentence confirming Mubashar, the THS AI Tutor, is working." }],
       }),
     });
     const data = (await res.json()) as { reply?: string; error?: string };
@@ -140,7 +140,7 @@ export default function AiSettingsPage() {
       <div className="mb-6 flex flex-wrap gap-2">
         <Badge tone={status.enabled ? "teal" : "muted"}>{status.enabled ? "Tutor enabled" : "Tutor disabled"}</Badge>
         <Badge tone={status.envKeySet || status.apiKeySet ? "primary" : "hint"}>
-          {status.envKeySet || status.apiKeySet ? "AI_API_KEY configured" : "AI_API_KEY missing"}
+          {status.envKeySet || status.apiKeySet ? "API key configured" : "API key missing"}
         </Badge>
         <Badge tone="outline">
           {status.remainingToday} / {status.dailyLimit} remaining today
@@ -153,8 +153,9 @@ export default function AiSettingsPage() {
             Put the key in <code>.env.local</code> on the server, then restart Next.js. Never paste a key into this
             page or any React component.
           </p>
-          <pre className="mt-4 overflow-x-auto rounded-lg bg-[#0F172A] p-4 font-mono text-xs text-slate-100">{`AI_API_KEY=your_secret_api_key
-AI_PROVIDER=gemini
+          <pre className="mt-4 overflow-x-auto rounded-lg bg-[#0F172A] p-4 font-mono text-xs text-slate-100">{`GROQ_API_KEY=your_groq_key
+AI_PROVIDER=groq
+GROQ_MODEL=openai/gpt-oss-20b
 JWT_SECRET=change-this-secret`}</pre>
           <div className="mt-4">
             <label className="label" htmlFor="provider">

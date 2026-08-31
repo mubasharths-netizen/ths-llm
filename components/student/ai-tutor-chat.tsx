@@ -12,7 +12,7 @@ type Msg = { role: "user" | "assistant"; content: string };
 const welcome: Msg = {
   role: "assistant",
   content:
-    "I am THS AI Tutor. Ask about a concept, request a hint, paste code, or review a mistake. I will stay within your course context.",
+    "I am Mubashar, your AI Tutor. Ask about a concept, request a hint, paste code, or review a mistake. I will stay within your course context.",
 };
 
 const chips = [
@@ -82,8 +82,8 @@ export function AiTutorChat({ initialPrompt = "" }: { initialPrompt?: string }) 
       <Card className="flex min-h-[70vh] flex-col">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-xl font-semibold">THS AI Tutor</h1>
-            <p className="text-sm text-text-secondary">Live tutor — replies come from the configured model.</p>
+            <h1 className="text-xl font-semibold">Mubashar</h1>
+            <p className="text-sm text-text-secondary">AI Tutor — replies come from the configured model.</p>
           </div>
           {remaining !== null ? <Badge tone="outline">{remaining} left today</Badge> : null}
         </div>

@@ -88,7 +88,7 @@ export default async function StudentDashboard() {
           </li>
           <li>
             <Link href="/student/ai-tutor" className="font-medium text-primary">
-              Ask THS AI Tutor about recursion
+              Ask Mubashar about recursion
             </Link>
           </li>
         </ul>

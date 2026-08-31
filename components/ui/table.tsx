@@ -37,6 +37,18 @@ export function Tr({ children }: { children: ReactNode }) {
   return <tr className="h-[52px] border-b border-border last:border-0 hover:bg-surface-muted">{children}</tr>;
 }
 
-export function Td({ children, className }: { children: ReactNode; className?: string }) {
-  return <td className={cn("px-4 text-sm text-text", className)}>{children}</td>;
+export function Td({
+  children,
+  className,
+  colSpan,
+}: {
+  children?: ReactNode;
+  className?: string;
+  colSpan?: number;
+}) {
+  return (
+    <td colSpan={colSpan} className={cn("px-4 text-sm text-text", className)}>
+      {children}
+    </td>
+  );
 }

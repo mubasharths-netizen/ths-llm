@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, Td, Tr } from "@/components/ui/table";
+import { UsersRoleCharts } from "@/components/admin/users-role-charts";
 import type { AdminUserRow } from "@/lib/db-types";
 
 export function UsersManager({
@@ -20,6 +21,24 @@ export function UsersManager({
 }) {
   const [tab, setTab] = useState<AdminUserRow["role"] | "All">(initialRole ?? "All");
   const [rows, setRows] = useState(initialUsers);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/admin/users", { cache: "no-store", signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Could not load accounts.");
+        return (await res.json()) as { users?: AdminUserRow[] };
+      })
+      .then((data) => {
+        if (data.users) setRows(data.users);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setLoadError("Could not refresh the account list.");
+      });
+    return () => controller.abort();
+  }, []);
 
   const filtered = useMemo(
     () => (tab === "All" ? rows : rows.filter((u) => u.role === tab)),
@@ -71,6 +90,11 @@ export function UsersManager({
           </Button>
         }
       />
+      <UsersRoleCharts
+        users={rows}
+        activeRole={tab}
+        onSelectRole={!initialRole || initialRole === "All" ? (role) => setTab(role) : undefined}
+      />
       {!initialRole || initialRole === "All" ? (
         <div className="mb-4 flex flex-wrap gap-2">
           {(["All", "Student", "Teacher", "Admin"] as const).map((role) => (
@@ -81,6 +105,21 @@ export function UsersManager({
         </div>
       ) : null}
       <DataTable headers={["Name", "Email", "Role", "Class", "Status", "Actions"]}>
+        {loadError ? (
+          <Tr>
+            <Td className="text-error" colSpan={6}>
+              {loadError}
+            </Td>
+          </Tr>
+        ) : null}
+        {!loadError && filtered.length === 0 ? (
+          <Tr>
+            <Td className="text-text-secondary" colSpan={6}>
+              No {tab === "All" ? "accounts" : `${tab.toLowerCase()} accounts`} yet. Use Add account to create one —
+              the graphs above update from the same list.
+            </Td>
+          </Tr>
+        ) : null}
         {filtered.map((user) => (
           <Tr key={user.id}>
             <Td>{user.name}</Td>

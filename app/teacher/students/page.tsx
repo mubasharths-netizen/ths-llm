@@ -3,6 +3,7 @@ import { DataTable, Td, Tr } from "@/components/ui/table";
 import { teacherRoster } from "@/lib/db";
 import { currentTeacherId } from "@/lib/session-user";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Students" };
 
 export default async function TeacherStudentsPage() {

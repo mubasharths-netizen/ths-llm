@@ -65,6 +65,7 @@ export function AddAccountForm({ role }: { role: AdminUserRow["role"] }) {
     }
     setOk(`${role} account created for ${data.user.name}.`);
     setForm({ name: "", email: "", password: "", confirm: "", className: "" });
+    router.push(meta.listHref);
     router.refresh();
   }
 

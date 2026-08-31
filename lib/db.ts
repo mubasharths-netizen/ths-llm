@@ -93,12 +93,14 @@ function ensureBootstrapAdmin(database: DatabaseSync) {
 
 export function getUserByEmail(email: string) {
   ensureSeeded();
-  return db().prepare("SELECT * FROM users WHERE email = ?").get(email.toLowerCase()) as DbUser | undefined;
+  const row = db().prepare("SELECT * FROM users WHERE email = ?").get(email.toLowerCase());
+  return row ? mapDbUser(asSqlRow(row)) : undefined;
 }
 
 export function getUserById(id: string) {
   ensureSeeded();
-  return db().prepare("SELECT * FROM users WHERE id = ?").get(id) as DbUser | undefined;
+  const row = db().prepare("SELECT * FROM users WHERE id = ?").get(id);
+  return row ? mapDbUser(asSqlRow(row)) : undefined;
 }
 
 export function createUser(input: {
@@ -190,7 +192,7 @@ export function teacherCourses(teacherId: string) {
 
 export function teacherRoster(teacherId: string) {
   ensureSeeded();
-  return db()
+  const enrolled = db()
     .prepare(
       `SELECT DISTINCT u.id, u.name, u.email, u.class_name AS class, u.score
        FROM enrollments e
@@ -200,6 +202,17 @@ export function teacherRoster(teacherId: string) {
        ORDER BY u.name`,
     )
     .all(teacherId) as Array<{ id: string; name: string; email: string; class: string; score: number }>;
+  if (enrolled.length > 0) return enrolled.map((row) => asPlain(row));
+  return (
+    db()
+      .prepare(
+        `SELECT id, name, email, class_name AS class, score
+         FROM users
+         WHERE role = 'student' AND status = 'Active'
+         ORDER BY name`,
+      )
+      .all() as Array<{ id: string; name: string; email: string; class: string; score: number }>
+  ).map((row) => asPlain(row));
 }
 
 export function studentDashboard(userId: string) {
@@ -386,7 +399,29 @@ export function createManagedUser(input: {
       className,
       "Active",
     );
-  return getUserById(id)!;
+  if (input.role === "student") {
+    enrollStudentInPublishedCourses(id);
+  }
+  try {
+    db().exec("PRAGMA wal_checkpoint(TRUNCATE);");
+  } catch {
+    // Checkpoint is best-effort so the new row is visible to the next request.
+  }
+  const created = getUserById(id);
+  if (!created) {
+    throw new Error("User was not saved.");
+  }
+  return created;
+}
+
+function enrollStudentInPublishedCourses(userId: string) {
+  const courses = db().prepare("SELECT id FROM courses WHERE published = 1").all() as Array<{ id: string }>;
+  const insert = db().prepare(
+    "INSERT OR IGNORE INTO enrollments (user_id, course_id, progress) VALUES (?, ?, 0)",
+  );
+  for (const course of courses) {
+    insert.run(userId, course.id);
+  }
 }
 
 export function setUserStatus(id: string, status: string) {
@@ -634,10 +669,35 @@ export function adminCount() {
   return row.count;
 }
 
+function mapDbUser(row: SqlRow): DbUser {
+  const role = String(row.role);
+  return {
+    id: String(row.id),
+    name: String(row.name),
+    email: String(row.email),
+    password_hash: String(row.password_hash ?? ""),
+    role: role === "teacher" || role === "admin" ? role : "student",
+    class_name: row.class_name == null ? null : String(row.class_name),
+    status: String(row.status ?? "Active"),
+    score: Number(row.score ?? 0),
+    subject: row.subject == null ? null : String(row.subject),
+    qualification: row.qualification == null ? null : String(row.qualification),
+    avatar: row.avatar == null ? null : String(row.avatar),
+  };
+}
+
 export function listUsers(role?: string) {
   ensureSeeded();
-  if (role) {
-    return db().prepare("SELECT * FROM users WHERE role = ? ORDER BY name").all(role) as DbUser[];
-  }
-  return db().prepare("SELECT * FROM users ORDER BY role, name").all() as DbUser[];
+  const rows = role
+    ? db()
+        .prepare(
+          "SELECT id, name, email, password_hash, role, class_name, status, score, subject, qualification, avatar FROM users WHERE role = ? ORDER BY name",
+        )
+        .all(role)
+    : db()
+        .prepare(
+          "SELECT id, name, email, password_hash, role, class_name, status, score, subject, qualification, avatar FROM users ORDER BY role, name",
+        )
+        .all();
+  return rows.map((row) => mapDbUser(asSqlRow(row)));
 }

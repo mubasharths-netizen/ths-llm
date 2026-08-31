@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, PageHeader, StatCard } from "@/components/ui/card";
 import { DataTable, Td, Tr } from "@/components/ui/table";
-import { adminOverview } from "@/lib/db";
+import { UsersRoleCharts } from "@/components/admin/users-role-charts";
+import { adminOverview, listAdminUsers } from "@/lib/db";
 
 export const metadata = { title: "Admin dashboard" };
 
 export default function AdminDashboardPage() {
   const overview = adminOverview();
+  const users = listAdminUsers();
   const logs = overview.logs as Array<{
     actor: string;
     action: string;
@@ -39,7 +41,10 @@ export default function AdminDashboardPage() {
         <StatCard label="Average score" value={String(overview.averageScore)} hint="From student records" />
         <StatCard label="System activity" value={String(logs.length)} hint="Recent audit events" />
       </div>
-      <h2 className="mt-8 mb-4 text-xl font-semibold">Recent activity</h2>
+      <div className="mt-6">
+        <UsersRoleCharts users={users} activeRole="All" showStats={false} />
+      </div>
+      <h2 className="mt-2 mb-4 text-xl font-semibold">Recent activity</h2>
       <DataTable headers={["Actor", "Action", "Target", "Time"]}>
         {logs.map((log) => (
           <Tr key={`${log.created_at}-${log.action}-${log.target}`}>

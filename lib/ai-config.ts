@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { AiAnswerMode, AiProvider } from "@/lib/ai-types";
+import { dataDir } from "@/lib/data-dir";
 
 export type { AiAnswerMode, AiProvider };
 
@@ -16,11 +17,11 @@ export type AiConfig = {
   safetyEnabled: boolean;
 };
 
-const filePath = path.join(process.cwd(), "data", "ai-config.json");
+const filePath = path.join(dataDir(), "ai-config.json");
 
 const defaults: AiConfig = {
   enabled: true,
-  provider: "gemini",
+  provider: "groq",
   ollamaUrl: "http://127.0.0.1:11434",
   ollamaModel: "llama3.2",
   dailyLimit: 80,
@@ -87,23 +88,32 @@ export async function writeAiConfig(next: AiConfig) {
 }
 
 export async function incrementAiUsage() {
-  const config = await readAiConfig();
-  const date = today();
-  const usedToday = config.usageDate === date ? config.usedToday + 1 : 1;
-  const next = { ...config, usageDate: date, usedToday };
-  await writeAiConfig(next);
-  return next;
+  try {
+    const config = await readAiConfig();
+    const date = today();
+    const usedToday = config.usageDate === date ? config.usedToday + 1 : 1;
+    const next = { ...config, usageDate: date, usedToday };
+    await writeAiConfig(next);
+    return next;
+  } catch {
+    const config = await readAiConfig().catch(() => defaults);
+    return config;
+  }
 }
 
-export function resolveApiKey() {
-  const keys = [
-    process.env.AI_API_KEY,
-    process.env.GEMINI_API_KEY,
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-    process.env.OPENAI_API_KEY,
-    process.env.GROQ_API_KEY,
-  ];
-  return keys.map((value) => value?.trim() || "").find(isUsableKey) || "";
+export function resolveApiKey(provider?: AiProvider) {
+  const groqFirst = ["GROQ_API_KEY", "AI_API_KEY"] as const;
+  const geminiFirst = ["GEMINI_API_KEY", "GOOGLE_GENERATIVE_AI_API_KEY", "AI_API_KEY"] as const;
+  const openaiFirst = ["OPENAI_API_KEY", "AI_API_KEY"] as const;
+  const names =
+    provider === "groq"
+      ? groqFirst
+      : provider === "gemini"
+        ? geminiFirst
+        : provider === "openai"
+          ? openaiFirst
+          : (["AI_API_KEY", "GROQ_API_KEY", "GEMINI_API_KEY", "GOOGLE_GENERATIVE_AI_API_KEY", "OPENAI_API_KEY"] as const);
+  return names.map((name) => process.env[name]?.trim() || "").find(isUsableKey) || "";
 }
 
 export function resolveProvider(configured: AiProvider): AiProvider {
@@ -120,7 +130,7 @@ export function resolveProvider(configured: AiProvider): AiProvider {
 
 export function sanitizeProviderError(message: string) {
   if (/api[_-]?key|sk-|gsk_|AIza|bearer/i.test(message)) {
-    return "The AI provider rejected the request. Check AI_API_KEY in .env.local.";
+    return "The AI provider rejected the request. Check GROQ_API_KEY in .env.local, then restart the server.";
   }
   return message.slice(0, 180);
 }

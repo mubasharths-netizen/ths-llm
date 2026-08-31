@@ -6,7 +6,7 @@ const steps = [
   ["Login", "Sign in with the account created by your administrator."],
   ["Learn", "Follow course modules and complete lessons."],
   ["Practice", "Attempt questions with optional hints."],
-  ["Get help", "Ask THS AI Tutor to explain a concept or mistake."],
+  ["Get help", "Ask Mubashar (AI Tutor) to explain a concept or mistake."],
   ["Quiz", "Check understanding in a short quiz."],
   ["Test", "Sit a locked, timed assessment."],
   ["Analyze", "Review score, rank, and weak topics."],

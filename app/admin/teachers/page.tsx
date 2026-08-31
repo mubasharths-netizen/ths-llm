@@ -1,6 +1,7 @@
 import { UsersManager } from "@/components/admin/users-manager";
 import { listAdminUsers } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Teachers" };
 
 export default function AdminTeachersPage() {
