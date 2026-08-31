@@ -27,9 +27,6 @@ export default function AdminDashboardPage() {
             <Button href="/admin/add/teacher" variant="secondary">
               Add teacher
             </Button>
-            <Button href="/admin/add/admin" variant="secondary">
-              Add admin
-            </Button>
           </>
         }
       />

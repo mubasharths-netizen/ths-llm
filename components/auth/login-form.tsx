@@ -6,7 +6,6 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Alert } from "@/components/ui/alert";
 
 const homeByRole = {
   student: "/student",
@@ -14,13 +13,7 @@ const homeByRole = {
   admin: "/admin",
 } as const;
 
-export function LoginForm({
-  allowSetup = false,
-  justReset = false,
-}: {
-  allowSetup?: boolean;
-  justReset?: boolean;
-}) {
+export function LoginForm({ justReset = false }: { justReset?: boolean }) {
   const router = useRouter();
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
@@ -60,20 +53,7 @@ export function LoginForm({
         </div>
         <Card>
           <h1 className="text-[28px] font-semibold tracking-tight">Login</h1>
-          {allowSetup ? (
-            <div className="mt-4 space-y-3">
-              <Alert tone="hint">
-                This server has no users yet. Create the first administrator — that account becomes Admin and can sign
-                in.
-              </Alert>
-              <Button href="/register" className="w-full">
-                Create administrator
-              </Button>
-              <p className="text-sm text-text-secondary">Already created the admin account? Sign in below.</p>
-            </div>
-          ) : (
-            <p className="mt-1 text-sm text-text-secondary">Sign in with your email and password.</p>
-          )}
+          <p className="mt-1 text-sm text-text-secondary">Sign in with your email and password.</p>
           {justReset ? (
             <p className="mt-3 text-sm font-medium text-teal">Password updated. Sign in with your new password.</p>
           ) : null}
