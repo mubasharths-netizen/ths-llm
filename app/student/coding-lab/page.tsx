@@ -8,8 +8,27 @@ const samples: Record<string, string> = {
   HTML: "<h1>THS LAB</h1>\n<p>Learn. Practice. Improve.</p>",
   CSS: "body { font-family: Inter, sans-serif; color: #0F172A; }",
   JavaScript: "function greet(name) {\n  return `Hello, ${name}`;\n}\nconsole.log(greet('Ayesha'));",
+  Java: "public class Main {\n  public static void main(String[] args) {\n    System.out.println(\"Hello, THS\");\n  }\n}",
   Python: "def calculate_sum(nums):\n    total = 0\n    for n in nums:\n        total += n\n    return total\n\nprint(calculate_sum([1, 2, 3]))",
   SQL: "SELECT name, score FROM students\nWHERE class = 'BSIT-4A'\nORDER BY score DESC;",
+};
+
+const labInstructions: Record<string, string> = {
+  HTML: "Instructions: Build a heading and a short paragraph for the THS LAB home block.",
+  CSS: "Instructions: Set a clean body font and text color for the lab pages.",
+  JavaScript: "Instructions: Write greet(name) so it returns a hello message. Expected: Hello, Ayesha",
+  Java: "Instructions: Print Hello, THS from the main method.",
+  Python: "Instructions: Implement calculate_sum so it returns the total of a list. Test case: [1, 2, 3] → 6.",
+  SQL: "Instructions: Select student name and score for class BSIT-4A, highest score first.",
+};
+
+const runOutput: Record<string, string> = {
+  HTML: "<h1>THS LAB</h1>\n<p>Learn. Practice. Improve.</p>",
+  CSS: "Styles applied to the page.",
+  JavaScript: "Hello, Ayesha",
+  Java: "Hello, THS",
+  Python: "6",
+  SQL: "name          score\nAyesha Khan   850\nHassan Ali    942",
 };
 
 export default function CodingLabPage() {
@@ -43,7 +62,7 @@ export default function CodingLabPage() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[28px] font-semibold tracking-tight">Coding Lab</h1>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="teal" onClick={() => setOut(lang === "Python" ? "6" : "Program finished.")}>
+          <Button type="button" variant="teal" onClick={() => setOut(runOutput[lang] ?? "Program finished.")}>
             Run
           </Button>
           <Button type="button" variant="secondary" onClick={() => setCode(samples[lang])}>
@@ -87,7 +106,7 @@ export default function CodingLabPage() {
         </div>
       </div>
       <p className="mt-4 text-sm text-text-secondary">
-        Instructions: Implement calculate_sum so it returns the total of a list. Test case: [1, 2, 3] → 6.
+        {labInstructions[lang] ?? "Follow the lab instructions for this language."}
       </p>
       {help ? (
         <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-border bg-ai-soft p-4 text-sm leading-6 text-text">

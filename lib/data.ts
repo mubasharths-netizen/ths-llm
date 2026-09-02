@@ -12,7 +12,7 @@ export const student = {
 export const teacher = {
   name: "Imran Malik",
   email: "imran@thslab.edu",
-  subjects: ["Python", "Web Development", "SQL"],
+  subjects: ["Python", "HTML", "CSS", "Java", "JavaScript", "SQL"],
   avatar: "IM",
 };
 
@@ -82,6 +82,42 @@ export const courses = [
     lessons: 28,
     description:
       "Write reliable JavaScript for the browser and lab exercises, including functions, arrays, and DOM work.",
+  },
+  {
+    id: "html-fundamentals",
+    title: "HTML Fundamentals",
+    teacher: "Nadia Rehman",
+    level: "Beginner",
+    category: "Web",
+    progress: 0,
+    duration: "5 weeks",
+    lessons: 16,
+    description:
+      "Learn page structure, semantic tags, links, images, and forms used in THS lab websites.",
+  },
+  {
+    id: "css-styling",
+    title: "CSS Styling",
+    teacher: "Nadia Rehman",
+    level: "Beginner",
+    category: "Web",
+    progress: 0,
+    duration: "6 weeks",
+    lessons: 18,
+    description:
+      "Style layouts with selectors, the box model, flexbox, and responsive design.",
+  },
+  {
+    id: "java-programming",
+    title: "Java Programming",
+    teacher: "Imran Malik",
+    level: "Intermediate",
+    category: "Programming",
+    progress: 0,
+    duration: "10 weeks",
+    lessons: 30,
+    description:
+      "Write Java programs with classes, objects, inheritance, and collections for lab coursework.",
   },
 ];
 

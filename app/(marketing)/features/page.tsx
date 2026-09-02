@@ -7,7 +7,7 @@ const features = [
   { icon: Bot, title: "AI Tutor", body: "Explanations, hints, and study recommendations." },
   { icon: PenLine, title: "Practice hints", body: "Amber hints when you need a nudge, not an answer dump." },
   { icon: ClipboardCheck, title: "Locked test mode", body: "Practice, hints, and AI stay unavailable during exams." },
-  { icon: Code2, title: "Coding Lab", body: "HTML, CSS, JavaScript, Python, and SQL in one editor." },
+  { icon: Code2, title: "Coding Lab", body: "HTML, CSS, Java, JavaScript, Python, and SQL in one editor." },
   { icon: ChartLine, title: "Analytics", body: "Strong topics, weak topics, and weekly activity." },
   { icon: Trophy, title: "Rankings", body: "Academic class rank — professional, not a game board." },
   { icon: Award, title: "Certificates", body: "Course completion with verifiable certificate IDs." },

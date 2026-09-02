@@ -102,7 +102,7 @@ export default function HomePage() {
           <Code2 className="text-primary" />
           <h3 className="mt-3 font-semibold">Coding Lab</h3>
           <p className="mt-2 text-sm text-text-secondary">
-            Write HTML, CSS, JavaScript, Python, and SQL in a professional editor.
+            Write HTML, CSS, Java, JavaScript, Python, and SQL in a professional editor.
           </p>
         </Card>
         <Card>

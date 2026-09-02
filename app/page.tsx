@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ThsMark } from "@/components/ui/logo";
 
 export default function WelcomePage() {
   return (
@@ -18,8 +19,10 @@ export default function WelcomePage() {
       <div className="absolute right-[10%] bottom-16 hidden font-mono text-xs text-teal-200/50 md:block">{`SELECT * FROM skills;`}</div>
 
       <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
-        <p className="text-sm font-medium tracking-[0.18em] text-blue-200 uppercase">THS LAB LMS</p>
-        <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">Welcome to THS LAB LMS</h1>
+        <div className="mb-6 flex justify-center">
+          <ThsMark inverted size="lg" />
+        </div>
+        <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">Welcome to THS</h1>
         <p className="mt-3 text-xl text-blue-100">Learn. Practice. Improve.</p>
         <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-200">
           A professional IT learning platform where students learn technology, practice skills, receive AI

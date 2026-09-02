@@ -1,44 +1,93 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, PageHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
-
-const question = {
-  prompt: "What values does range(3) produce in Python?",
-  options: ["1, 2, 3", "0, 1, 2", "0, 1, 2, 3", "3, 2, 1"],
-  correct: 1,
-  hint: "range(n) starts at 0 and stops before n.",
-  explanation: "range(3) yields 0, 1, and 2. The stop value is exclusive.",
-};
+import {
+  PRACTICE_DIFFICULTIES,
+  PRACTICE_SUBJECTS,
+  questionsFor,
+  topicsForSubject,
+  type PracticeDifficulty,
+  type PracticeSubject,
+} from "@/lib/practice-questions";
 
 export default function PracticePage() {
-  const [topic, setTopic] = useState("Loops");
-  const [diff, setDiff] = useState("Easy");
+  const [subject, setSubject] = useState<PracticeSubject>("HTML");
+  const [topic, setTopic] = useState(() => topicsForSubject("HTML")[0]);
+  const [diff, setDiff] = useState<PracticeDifficulty>("Easy");
+  const [index, setIndex] = useState(0);
   const [choice, setChoice] = useState<number | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [result, setResult] = useState<"ok" | "bad" | null>(null);
 
+  const topics = useMemo(() => topicsForSubject(subject), [subject]);
+  const pool = useMemo(() => questionsFor(subject, topic, diff), [subject, topic, diff]);
+  const question = pool[index % pool.length];
+
+  function resetAnswer() {
+    setChoice(null);
+    setResult(null);
+    setShowHint(false);
+  }
+
+  function selectSubject(next: PracticeSubject) {
+    const nextTopics = topicsForSubject(next);
+    setSubject(next);
+    setTopic(nextTopics[0]);
+    setIndex(0);
+    resetAnswer();
+  }
+
+  function selectTopic(next: string) {
+    setTopic(next);
+    setIndex(0);
+    resetAnswer();
+  }
+
+  function selectDiff(next: PracticeDifficulty) {
+    setDiff(next);
+    setIndex(0);
+    resetAnswer();
+  }
+
+  function nextQuestion() {
+    setIndex((i) => i + 1);
+    resetAnswer();
+  }
+
   return (
     <>
-      <PageHeader title="Practice" description="Encouraging practice. Hints and AI help are available." />
+      <PageHeader
+        title="Practice"
+        description="Choose a language, pick a topic, then practise with hints and AI help."
+      />
+      <div className="mb-4 flex flex-wrap gap-2">
+        {PRACTICE_SUBJECTS.map((item) => (
+          <button key={item} type="button" onClick={() => selectSubject(item)}>
+            <Badge tone={subject === item ? "primary" : "outline"}>{item}</Badge>
+          </button>
+        ))}
+      </div>
       <div className="mb-4 flex flex-wrap gap-3">
-        <select className="input max-w-xs" value={topic} onChange={(e) => setTopic(e.target.value)}>
-          <option>Loops</option>
-          <option>Functions</option>
-          <option>Joins</option>
+        <select className="input max-w-xs" value={topic} onChange={(e) => selectTopic(e.target.value)}>
+          {topics.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
         </select>
-        {["Easy", "Medium", "Hard"].map((d) => (
-          <button key={d} type="button" onClick={() => setDiff(d)}>
+        {PRACTICE_DIFFICULTIES.map((d) => (
+          <button key={d} type="button" onClick={() => selectDiff(d)}>
             <Badge tone={diff === d ? "teal" : "outline"}>{d}</Badge>
           </button>
         ))}
       </div>
       <Card>
         <p className="text-xs text-text-muted">
-          {topic} · {diff}
+          {subject} · {topic} · {diff}
         </p>
         <h2 className="mt-2 text-lg font-semibold">{question.prompt}</h2>
         <div className="mt-4 space-y-2">
@@ -67,7 +116,7 @@ export default function PracticePage() {
         ) : null}
         {result === "bad" ? (
           <div className="mt-4">
-            <Alert tone="error">Incorrect. Review the explanation, then try again.</Alert>
+            <Alert tone="error">Incorrect. {question.explanation} Review this, then try again.</Alert>
           </div>
         ) : null}
         <div className="mt-6 flex flex-wrap gap-2">
@@ -79,7 +128,7 @@ export default function PracticePage() {
           </Button>
           <Button
             href={`/student/ai-tutor?prompt=${encodeURIComponent(
-              `I am practising ${topic} (${diff}). Question: ${question.prompt}. ${
+              `I am practising ${subject} — ${topic} (${diff}). Question: ${question.prompt}. ${
                 choice !== null ? `I chose: ${question.options[choice]}.` : "I have not answered yet."
               } Help me understand this. Follow the tutor answer mode.`,
             )}`}
@@ -87,16 +136,11 @@ export default function PracticePage() {
           >
             Ask AI Tutor
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              setChoice(null);
-              setResult(null);
-              setShowHint(false);
-            }}
-          >
+          <Button type="button" variant="ghost" onClick={resetAnswer}>
             Try again
+          </Button>
+          <Button type="button" variant="ghost" onClick={nextQuestion}>
+            Next question
           </Button>
         </div>
       </Card>

@@ -3,34 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Bell, BookOpen, Eye, EyeOff, GraduationCap } from "lucide-react";
+import { Bell, BookOpen, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThsMark } from "@/components/ui/logo";
 
 const homeByRole = {
   student: "/student",
   teacher: "/teacher",
   admin: "/admin",
 } as const;
-
-function ThsWordmark() {
-  return (
-    <div className="flex flex-col items-center">
-      <div className="relative inline-flex items-end leading-none">
-        <span className="text-[64px] font-black tracking-tight text-primary">T</span>
-        <span className="relative text-[64px] font-black tracking-tight text-primary">
-          H
-          <GraduationCap
-            className="absolute -top-5 left-1/2 h-7 w-7 -translate-x-1/2 text-primary"
-            strokeWidth={2.4}
-            aria-hidden
-          />
-        </span>
-        <span className="text-[64px] font-black tracking-tight text-primary">S</span>
-      </div>
-      <p className="mt-1 text-xs font-semibold tracking-[0.28em] text-text-muted">LAB</p>
-    </div>
-  );
-}
 
 export function LoginForm({ justReset = false }: { justReset?: boolean }) {
   const router = useRouter();
@@ -69,7 +50,10 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
       <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(320px,42%)_1fr]">
         <section className="flex flex-col justify-center px-6 py-10 sm:px-12">
           <div className="mx-auto w-full max-w-sm">
-            <ThsWordmark />
+            <div className="flex flex-col items-center">
+              <ThsMark size="lg" />
+              <p className="mt-1 text-xs font-semibold tracking-[0.28em] text-text-muted">LAB</p>
+            </div>
             {justReset ? (
               <p className="mt-6 text-center text-sm font-medium text-teal">Password updated. Sign in below.</p>
             ) : null}
