@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Bell, BookOpen, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThsMark } from "@/components/ui/logo";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
 const homeByRole = {
   student: "/student",
@@ -96,6 +97,18 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
                 {pending ? "Signing in…" : "Sign In"}
               </Button>
             </form>
+            <div className="my-6 flex items-center gap-3 text-xs text-text-muted">
+              <span className="h-px flex-1 bg-slate-200" />
+              or
+              <span className="h-px flex-1 bg-slate-200" />
+            </div>
+            <GoogleSignInButton onError={setError} />
+            <p className="mt-4 text-center text-sm text-text-secondary">
+              New here?{" "}
+              <Link href="/register" className="font-medium text-primary">
+                Sign up
+              </Link>
+            </p>
             <div className="mt-10 space-y-3 text-sm text-text-secondary">
               <Link href="/home" className="flex items-center gap-2 hover:text-primary">
                 <Bell size={16} className="text-primary" />

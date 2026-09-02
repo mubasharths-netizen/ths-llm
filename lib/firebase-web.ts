@@ -67,6 +67,39 @@ export async function firebaseAuthSignIn(email: string, password: string): Promi
   });
 }
 
+export async function lookupFirebaseIdToken(idToken: string) {
+  const key = webApiKey();
+  const res = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(key)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    },
+  );
+  const data = (await res.json()) as {
+    users?: Array<{
+      localId?: string;
+      email?: string;
+      displayName?: string;
+      emailVerified?: boolean;
+      providerUserInfo?: Array<{ providerId?: string }>;
+    }>;
+    error?: { message?: string };
+  };
+  const profile = data.users?.[0];
+  if (!res.ok || !profile?.localId || !profile.email) {
+    throw new Error(data.error?.message || "Google sign-in could not be verified.");
+  }
+  return {
+    localId: profile.localId,
+    email: profile.email.toLowerCase(),
+    name: profile.displayName || profile.email.split("@")[0],
+    emailVerified: profile.emailVerified === true,
+    fromGoogle: profile.providerUserInfo?.some((item) => item.providerId === "google.com") ?? false,
+  };
+}
+
 export async function readFirestoreUser(idToken: string, docId: string) {
   const encoded = encodeURIComponent(docId);
   const res = await fetch(

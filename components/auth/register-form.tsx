@@ -6,8 +6,9 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
-export function RegisterForm() {
+export function RegisterForm({ allowEmailSetup = false }: { allowEmailSetup?: boolean }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -48,12 +49,26 @@ export function RegisterForm() {
           <Logo />
         </div>
         <Card>
-          <h1 className="text-[28px] font-semibold tracking-tight">Create administrator</h1>
+          <h1 className="text-[28px] font-semibold tracking-tight">
+            {allowEmailSetup ? "Create administrator" : "Sign up"}
+          </h1>
           <p className="mt-1 text-sm text-text-secondary">
-            This setup is only available when no administrator exists. After this, only an admin can add login accounts.
+            {allowEmailSetup
+              ? "This setup is only available when no administrator exists. After this, students can join with Google."
+              : "Create a student account with Google. Teachers are added by an administrator."}
           </p>
           {error ? <p className="mt-3 text-sm text-error">{error}</p> : null}
-          <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+          <div className="mt-6">
+            <GoogleSignInButton label="Sign up with Google" onError={setError} />
+          </div>
+          {allowEmailSetup ? (
+            <>
+              <div className="my-6 flex items-center gap-3 text-xs text-text-muted">
+                <span className="h-px flex-1 bg-border" />
+                or create with email
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <form className="space-y-4" onSubmit={onSubmit}>
             <div>
               <label className="label" htmlFor="name">
                 Full name
@@ -78,10 +93,12 @@ export function RegisterForm() {
               </label>
               <input id="confirm" name="confirm" type="password" className="input" minLength={4} required />
             </div>
-            <Button type="submit" className="w-full" disabled={pending}>
-              {pending ? "Creating account…" : "Create administrator"}
-            </Button>
-          </form>
+              <Button type="submit" className="w-full" disabled={pending}>
+                {pending ? "Creating account…" : "Create administrator"}
+              </Button>
+            </form>
+            </>
+          ) : null}
           <p className="mt-4 text-sm text-text-secondary">
             Already have an account?{" "}
             <Link href="/login" className="font-medium text-primary">
