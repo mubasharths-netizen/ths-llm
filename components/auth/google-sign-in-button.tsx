@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   googleAuthErrorMessage,
   googleRedirectIdToken,
-  signInWithGooglePopup,
+  signInWithGoogle,
   startGoogleRedirect,
 } from "@/lib/firebase-client";
 
@@ -74,7 +74,7 @@ export function GoogleSignInButton({
     onError("");
     setPending(true);
     try {
-      const idToken = await signInWithGooglePopup();
+      const idToken = await signInWithGoogle();
       await finishSignIn(idToken);
     } catch (err) {
       const code = typeof err === "object" && err && "code" in err ? String((err as { code?: string }).code) : "";

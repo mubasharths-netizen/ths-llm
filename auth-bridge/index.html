@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>THS LAB Google sign-in</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: Arial, sans-serif;
+        background: #0b1b4a;
+        color: #fff;
+      }
+      p {
+        opacity: 0.9;
+      }
+    </style>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+      import {
+        GoogleAuthProvider,
+        getAuth,
+        getRedirectResult,
+        signInWithPopup,
+        signInWithRedirect,
+      } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+      const ALLOWED_HOSTS = new Set(["localhost", "127.0.0.1", "ths-llm-sight.vercel.app", "ths-llm-1.vercel.app"]);
+
+      function allowedOrigin(value) {
+        if (!value) return "";
+        try {
+          const url = new URL(value);
+          if (ALLOWED_HOSTS.has(url.hostname)) return url.origin;
+          if (url.hostname.endsWith(".vercel.app") && url.hostname.includes("ths-llm")) return url.origin;
+        } catch {
+          return "";
+        }
+        return "";
+      }
+
+      const target = allowedOrigin(new URLSearchParams(location.search).get("origin") || "");
+      const app = initializeApp({
+        apiKey: "AIzaSyDmhYINPtjs4w-bJm_G8bs8As7Tfyz8T-4",
+        authDomain: "ths-lab-lms-97e043.firebaseapp.com",
+        projectId: "ths-lab-lms-97e043",
+      });
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+
+      function send(payload) {
+        if (window.opener && target) {
+          window.opener.postMessage({ type: "ths-google-auth", ...payload }, target);
+        }
+      }
+
+      async function start() {
+        try {
+          const redirected = await getRedirectResult(auth);
+          const user = redirected?.user
+            ? redirected.user
+            : (await signInWithPopup(auth, provider).catch(async (err) => {
+                const code = err && err.code ? String(err.code) : "";
+                if (code === "auth/popup-blocked" || code === "auth/cancelled-popup-request") {
+                  await signInWithRedirect(auth, provider);
+                  return null;
+                }
+                throw err;
+              }))?.user;
+          if (!user) return;
+          const idToken = await user.getIdToken();
+          if (!idToken) throw new Error("Google did not return a sign-in token.");
+          send({ idToken });
+          setTimeout(() => window.close(), 250);
+        } catch (err) {
+          send({ error: err instanceof Error ? err.message : "Google sign-in failed." });
+          setTimeout(() => window.close(), 600);
+        }
+      }
+
+      start();
+    </script>
+  </head>
+  <body>
+    <p>Signing in with Google…</p>
+  </body>
+</html>
