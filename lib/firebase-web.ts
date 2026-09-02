@@ -67,6 +67,33 @@ export async function firebaseAuthSignIn(email: string, password: string): Promi
   });
 }
 
+const GOOGLE_WEB_CLIENT_ID =
+  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() ||
+  "459777135899-oj160q89lhs1ohcq2cv31hmgukdtchqh.apps.googleusercontent.com";
+
+export async function verifyGoogleCredential(idToken: string) {
+  const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
+  const data = (await res.json()) as {
+    aud?: string;
+    email?: string;
+    email_verified?: string | boolean;
+    name?: string;
+    sub?: string;
+    error?: string;
+    error_description?: string;
+  };
+  if (!res.ok || !data.email || data.aud !== GOOGLE_WEB_CLIENT_ID) {
+    throw new Error(data.error_description || data.error || "Google sign-in could not be verified.");
+  }
+  return {
+    localId: data.sub || data.email,
+    email: data.email.toLowerCase(),
+    name: data.name || data.email.split("@")[0],
+    emailVerified: data.email_verified === true || data.email_verified === "true",
+    fromGoogle: true,
+  };
+}
+
 export async function lookupFirebaseIdToken(idToken: string) {
   const key = webApiKey();
   const res = await fetch(

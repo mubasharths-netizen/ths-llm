@@ -1,7 +1,8 @@
-import { TeacherSection } from "@/components/teacher/section";
+import { TeacherContentPage } from "@/components/teacher/teacher-content-page";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Feedback" };
 
-export default function Page() {
-  return <TeacherSection title="Feedback" description="Comments on student work." />;
+export default async function Page({ searchParams }: PageProps<"/teacher/feedback">) {
+  return <TeacherContentPage kind="feedback" searchParams={searchParams} />;
 }

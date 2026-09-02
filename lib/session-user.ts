@@ -14,6 +14,12 @@ export async function currentTeacherId() {
   return "";
 }
 
+export async function currentAdminId() {
+  const session = await getSession();
+  if (session?.role === "admin") return session.id;
+  return "";
+}
+
 export async function currentSessionName(fallback: string) {
   const session = await getSession();
   return session?.name ?? fallback;

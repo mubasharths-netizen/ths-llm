@@ -25,6 +25,7 @@ export const studentNav: NavItem[] = [
   { href: "/student/ranking", label: "Class Ranking", icon: "Trophy" },
   { href: "/student/progress", label: "Progress", icon: "ChartLine" },
   { href: "/student/certificates", label: "Certificates", icon: "Award" },
+  { href: "/student/announcements", label: "Announcements", icon: "Megaphone" },
   { href: "/student/notifications", label: "Notifications", icon: "Bell" },
   { href: "/student/profile", label: "Profile", icon: "User" },
 ];
@@ -59,6 +60,7 @@ export const adminNav: NavItem[] = [
   { href: "/admin/users", label: "All users", icon: "Users" },
   { href: "/admin/approvals", label: "Teacher Approval", icon: "UserCheck" },
   { href: "/admin/conduct", label: "Complaints & discipline", icon: "Shield" },
+  { href: "/admin/announcements", label: "Announcements", icon: "Megaphone" },
   { href: "/admin/courses", label: "Courses", icon: "BookOpen" },
   { href: "/admin/classes", label: "Classes", icon: "School" },
   { href: "/admin/assessments", label: "Assessments", icon: "ClipboardList" },

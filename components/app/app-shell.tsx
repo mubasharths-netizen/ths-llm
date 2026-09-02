@@ -183,7 +183,13 @@ export function AppShell({
               <input className="input w-56 pl-9" placeholder="Search" aria-label="Search" />
             </div>
             <Link
-              href={role === "Student" ? "/student/notifications" : role === "Teacher" ? "/teacher/announcements" : "/admin/audit-logs"}
+              href={
+                role === "Student"
+                  ? "/student/announcements"
+                  : role === "Teacher"
+                    ? "/teacher/announcements"
+                    : "/admin/announcements"
+              }
               className="relative inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border"
               aria-label="Notifications"
             >

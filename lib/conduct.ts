@@ -11,6 +11,7 @@ export type ClassMessage = {
   class_name: string | null;
   created_at: string;
   teacher_name: string;
+  sender_role: string;
   recipients: string;
 };
 
@@ -69,6 +70,11 @@ export function teacherAccessibleStudents(teacherId: string): RosterStudent[] {
     class: row.class || "",
   }));
   if (roster.length > 0) return roster;
+  return activeStudents();
+}
+
+export function activeStudents(): RosterStudent[] {
+  ensureSeeded();
   return listUsers("student")
     .filter((user) => user.status === "Active")
     .map((user) => ({ id: user.id, name: user.name, email: user.email, class: user.class_name ?? "" }));
@@ -106,20 +112,27 @@ export function listCaseEvents(caseType: string, caseId: string): CaseEvent[] {
 export function sendClassMessage(input: {
   teacherId: string;
   teacherName: string;
+  senderRole?: "teacher" | "admin";
   subject: string;
   body: string;
   kind: string;
-  audience: "one" | "selected" | "class";
+  audience: "one" | "selected" | "class" | "all";
   className?: string;
   studentIds: string[];
 }) {
   ensureSeeded();
-  const allowed = new Set(teacherAccessibleStudents(input.teacherId).map((row) => row.id));
+  const senderRole = input.senderRole ?? "teacher";
+  if (input.audience === "all" && senderRole !== "admin") {
+    return { error: "Only admins can send institute-wide announcements." as const };
+  }
+  const pool = senderRole === "admin" ? activeStudents() : teacherAccessibleStudents(input.teacherId);
+  const allowed = new Set(pool.map((row) => row.id));
   let ids = [...new Set(input.studentIds)].filter((id) => allowed.has(id));
   if (input.audience === "class" && input.className) {
-    ids = teacherAccessibleStudents(input.teacherId)
-      .filter((row) => row.class === input.className)
-      .map((row) => row.id);
+    ids = pool.filter((row) => row.class === input.className).map((row) => row.id);
+  }
+  if (input.audience === "all") {
+    ids = pool.map((row) => row.id);
   }
   if (ids.length === 0) return { error: "Select at least one student you are authorized to contact." as const };
   const id = `msg-${Date.now()}`;
@@ -137,7 +150,11 @@ export function sendClassMessage(input: {
     insertRecipient.run(id, studentId);
     insertNote.run(`n-${Date.now()}-${index}`, input.kind, input.subject, studentId);
   });
-  writeAudit(input.teacherName, "Sent message", input.subject);
+  writeAudit(
+    input.teacherName,
+    input.kind === "announcement" ? "Sent announcement" : "Sent message",
+    input.subject,
+  );
   return { error: null, id, count: ids.length };
 }
 
@@ -147,7 +164,7 @@ export function listTeacherMessages(teacherId: string): ClassMessage[] {
     db()
       .prepare(
         `SELECT m.id, m.subject, m.body, m.kind, m.audience, m.class_name, m.created_at, u.name AS teacher_name,
-                GROUP_CONCAT(s.name, ', ') AS recipients
+                u.role AS sender_role, GROUP_CONCAT(s.name, ', ') AS recipients
          FROM class_messages m
          JOIN users u ON u.id = m.teacher_id
          JOIN class_message_recipients r ON r.message_id = m.id
@@ -166,7 +183,7 @@ export function listStudentMessages(studentId: string): ClassMessage[] {
     db()
       .prepare(
         `SELECT m.id, m.subject, m.body, m.kind, m.audience, m.class_name, m.created_at, u.name AS teacher_name,
-                s.name AS recipients
+                u.role AS sender_role, s.name AS recipients
          FROM class_messages m
          JOIN users u ON u.id = m.teacher_id
          JOIN class_message_recipients r ON r.message_id = m.id
@@ -176,6 +193,12 @@ export function listStudentMessages(studentId: string): ClassMessage[] {
       )
       .all(studentId) as ClassMessage[]
   ).map(plain);
+}
+
+export function listStudentAnnouncements(studentId: string): ClassMessage[] {
+  return listStudentMessages(studentId).filter((row) =>
+    ["announcement", "assignment", "test", "general"].includes(row.kind),
+  );
 }
 
 export function createComplaint(input: {

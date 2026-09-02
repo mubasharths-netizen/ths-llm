@@ -1,10 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/card";
 import { DataTable, Td, Tr } from "@/components/ui/table";
+import { listPublishedAssessments } from "@/lib/teacher-content";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Tests" };
 
 export default function TestsListPage() {
+  const tests = listPublishedAssessments("test");
   return (
     <>
       <PageHeader title="Tests" description="Sit assessments in locked test mode." />
@@ -18,6 +21,17 @@ export default function TestsListPage() {
             <Button href="/student/tests/python-midterm">Start</Button>
           </Td>
         </Tr>
+        {tests.map((row) => (
+          <Tr key={row.id}>
+            <Td>{row.title}</Td>
+            <Td>{row.course_title || "—"}</Td>
+            <Td>{row.duration || "—"}</Td>
+            <Td>Ready</Td>
+            <Td>
+              <Button href={`/student/tests/${row.id}`}>Start</Button>
+            </Td>
+          </Tr>
+        ))}
       </DataTable>
     </>
   );

@@ -8,7 +8,7 @@ import {
   getUserByEmail,
   isOwnerAdminEmail,
 } from "@/lib/db";
-import { lookupFirebaseIdToken } from "@/lib/firebase-web";
+import { lookupFirebaseIdToken, verifyGoogleCredential } from "@/lib/firebase-web";
 import { randomBytes } from "node:crypto";
 
 export const runtime = "nodejs";
@@ -27,7 +27,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Google sign-in was cancelled." }, { status: 400 });
     }
 
-    const profile = await lookupFirebaseIdToken(idToken);
+    const profile = await (async () => {
+      try {
+        return await verifyGoogleCredential(idToken);
+      } catch {
+        return lookupFirebaseIdToken(idToken);
+      }
+    })();
     if (!profile.fromGoogle && !profile.emailVerified) {
       return NextResponse.json({ error: "Google could not verify this account." }, { status: 401 });
     }

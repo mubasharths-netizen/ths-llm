@@ -4,6 +4,8 @@ import { Card, PageHeader, StatCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress";
 import { DataTable, Td, Tr } from "@/components/ui/table";
+import { AnnouncementsFeed } from "@/components/student/announcements-feed";
+import { listStudentAnnouncements } from "@/lib/conduct";
 import { studentDashboard } from "@/lib/db";
 import { currentStudentId } from "@/lib/session-user";
 
@@ -12,6 +14,7 @@ export const metadata = { title: "Student dashboard" };
 export default async function StudentDashboard() {
   const userId = await currentStudentId();
   const { user, enrollments, rank, totalStudents } = studentDashboard(userId);
+  const announcements = listStudentAnnouncements(userId).slice(0, 3);
   const name = user?.name.split(" ")[0] ?? "Student";
   const score = user?.score ?? 0;
   const inProgress = enrollments.filter((course) => course.progress > 0 && course.progress < 100).length;
@@ -28,6 +31,26 @@ export default async function StudentDashboard() {
         <StatCard label="Courses in progress" value={String(inProgress)} />
         <StatCard label="Upcoming tests" value="2" hint="Python Midterm in 2 days" />
       </div>
+
+      <div className="mt-8 mb-4 flex items-end justify-between gap-3">
+        <h2 className="text-xl font-semibold">Announcements</h2>
+        <Button href="/student/announcements" variant="secondary">
+          View all
+        </Button>
+      </div>
+      {announcements.length > 0 ? (
+        <AnnouncementsFeed messages={announcements} />
+      ) : (
+        <Card>
+          <p className="font-semibold">No announcements yet</p>
+          <p className="mt-1 text-sm text-text-secondary">
+            Teachers and admins post notices here.{" "}
+            <Link href="/student/announcements" className="font-medium text-primary">
+              Open announcements
+            </Link>
+          </p>
+        </Card>
+      )}
 
       <h2 className="mt-8 mb-4 text-xl font-semibold">Current courses</h2>
       <div className="grid gap-4 md:grid-cols-3">

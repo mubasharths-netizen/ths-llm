@@ -17,22 +17,30 @@ const kinds = [
   { id: "general", label: "General message" },
 ];
 
+type Audience = "one" | "selected" | "class" | "all";
+
 export function TeacherMessages({
   title,
   description,
   students,
   messages,
   defaultKind = "general",
+  apiPath = "/api/teacher/messages",
+  allowInstituteWide = false,
+  submitLabel = "Send message",
 }: {
   title: string;
   description: string;
   students: RosterStudent[];
   messages: ClassMessage[];
   defaultKind?: string;
+  apiPath?: string;
+  allowInstituteWide?: boolean;
+  submitLabel?: string;
 }) {
   const router = useRouter();
   const classes = useMemo(() => [...new Set(students.map((row) => row.class).filter(Boolean))], [students]);
-  const [audience, setAudience] = useState<"one" | "selected" | "class">("one");
+  const [audience, setAudience] = useState<Audience>(allowInstituteWide ? "all" : "one");
   const [kind, setKind] = useState(defaultKind);
   const [studentId, setStudentId] = useState(students[0]?.id ?? "");
   const [selected, setSelected] = useState<string[]>([]);
@@ -44,6 +52,7 @@ export function TeacherMessages({
   const [pending, setPending] = useState(false);
 
   function studentIds() {
+    if (audience === "all") return students.map((row) => row.id);
     if (audience === "one") return studentId ? [studentId] : [];
     if (audience === "selected") return selected;
     return students.filter((row) => row.class === className).map((row) => row.id);
@@ -54,7 +63,7 @@ export function TeacherMessages({
     setPending(true);
     setError("");
     setOk("");
-    const res = await fetch("/api/teacher/messages", {
+    const res = await fetch(apiPath, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ subject, body, kind, audience, className, studentIds: studentIds() }),
@@ -107,8 +116,9 @@ export function TeacherMessages({
                 id="audience"
                 className="input"
                 value={audience}
-                onChange={(e) => setAudience(e.target.value as "one" | "selected" | "class")}
+                onChange={(e) => setAudience(e.target.value as Audience)}
               >
+                {allowInstituteWide ? <option value="all">Entire institute</option> : null}
                 <option value="one">Individual student</option>
                 <option value="selected">Selected students</option>
                 <option value="class">Entire class</option>
@@ -189,7 +199,7 @@ export function TeacherMessages({
             />
           </div>
           <Button type="submit" disabled={pending || students.length === 0}>
-            {pending ? "Sending…" : "Send message"}
+            {pending ? "Sending…" : submitLabel}
           </Button>
         </form>
       </Card>

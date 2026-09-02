@@ -29,17 +29,27 @@ export default async function NotificationsPage() {
 
   return (
     <>
-      <PageHeader title="Notifications" actions={<Button variant="secondary">Mark all read</Button>} />
+      <PageHeader
+        title="Notifications"
+        actions={
+          <>
+            <Button href="/student/announcements" variant="secondary">
+              Announcements
+            </Button>
+            <Button variant="secondary">Mark all read</Button>
+          </>
+        }
+      />
       {messages.length > 0 ? (
         <div className="mb-6 space-y-3">
-          <h2 className="text-lg font-semibold">Messages from teachers</h2>
+          <h2 className="text-lg font-semibold">From teachers and admins</h2>
           {messages.map((row) => (
             <Card key={row.id}>
               <Badge tone="outline">{row.kind}</Badge>
               <p className="mt-2 font-semibold">{row.subject}</p>
               <p className="mt-1 text-sm text-text-secondary">{row.body}</p>
               <p className="mt-2 text-xs text-text-muted">
-                {row.teacher_name} · {row.created_at}
+                {row.teacher_name} · {row.sender_role === "admin" ? "Admin" : "Teacher"} · {row.created_at}
               </p>
             </Card>
           ))}

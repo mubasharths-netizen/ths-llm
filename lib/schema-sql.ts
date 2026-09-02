@@ -174,4 +174,29 @@ CREATE TABLE IF NOT EXISTS case_events (
   note TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS teacher_items (
+  id TEXT PRIMARY KEY,
+  teacher_id TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL DEFAULT '',
+  subject TEXT,
+  topic TEXT,
+  difficulty TEXT,
+  course_id TEXT,
+  class_name TEXT,
+  student_id TEXT,
+  duration TEXT,
+  deadline TEXT,
+  options_json TEXT,
+  correct INTEGER,
+  hint TEXT,
+  explanation TEXT,
+  score INTEGER,
+  max_score INTEGER,
+  extra_json TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (teacher_id) REFERENCES users(id)
+);
 `;

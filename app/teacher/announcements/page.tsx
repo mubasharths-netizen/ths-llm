@@ -13,6 +13,7 @@ export default async function TeacherAnnouncementsPage() {
       students={teacherAccessibleStudents(teacherId)}
       messages={listTeacherMessages(teacherId)}
       defaultKind="announcement"
+      submitLabel="Send announcement"
     />
   );
 }
