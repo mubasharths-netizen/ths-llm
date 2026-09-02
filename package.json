@@ -10,8 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:push": "node scripts/push-lms-db.mjs",
-    "auth:hosting": "npx --yes firebase-tools deploy --only hosting --project ths-lab-lms-97e043 --non-interactive"
+    "db:push": "node scripts/push-lms-db.mjs"
   },
   "dependencies": {
     "firebase": "^12.18.0",
