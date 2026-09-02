@@ -435,6 +435,38 @@ export function deleteUser(id: string) {
   db().prepare("DELETE FROM users WHERE id = ?").run(id);
 }
 
+export function upsertUserRecord(user: DbUser) {
+  ensureSeeded();
+  db()
+    .prepare(
+      `INSERT INTO users (id, name, email, password_hash, role, class_name, status, score, subject, qualification, avatar)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(email) DO UPDATE SET
+         name = excluded.name,
+         password_hash = excluded.password_hash,
+         role = excluded.role,
+         class_name = excluded.class_name,
+         status = excluded.status,
+         score = excluded.score,
+         subject = excluded.subject,
+         qualification = excluded.qualification,
+         avatar = excluded.avatar`,
+    )
+    .run(
+      user.id,
+      user.name,
+      user.email.toLowerCase(),
+      user.password_hash,
+      user.role,
+      user.class_name,
+      user.status,
+      user.score,
+      user.subject,
+      user.qualification,
+      user.avatar,
+    );
+}
+
 export function setUserAvatar(id: string, filename: string | null) {
   ensureSeeded();
   db().prepare("UPDATE users SET avatar = ? WHERE id = ?").run(filename, id);

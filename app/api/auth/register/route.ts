@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { registerAccount, sessionCookie, signSession } from "@/lib/auth";
 import { releaseAssessmentLock } from "@/lib/assessment-lock";
 import { adminCount, getUserByEmail } from "@/lib/db";
+import { saveUserToFirebase } from "@/lib/firebase-users";
 
 export const runtime = "nodejs";
 
@@ -28,6 +29,8 @@ export async function POST(request: Request) {
     if (result.error || !result.user) {
       return NextResponse.json({ error: result.error }, { status: 409 });
     }
+    const created = getUserByEmail(email);
+    if (created) await saveUserToFirebase(created, password);
     const res = NextResponse.json({ user: result.user });
     releaseAssessmentLock(result.user.id);
     res.cookies.set(sessionCookie(signSession(result.user)));

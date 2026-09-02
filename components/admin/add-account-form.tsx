@@ -57,13 +57,22 @@ export function AddAccountForm({ role }: { role: AdminUserRow["role"] }) {
         className: form.className,
       }),
     });
-    const data = (await res.json()) as { error?: string; user?: AdminUserRow };
+    const data = (await res.json()) as {
+      error?: string;
+      user?: AdminUserRow;
+      firebaseConnected?: boolean;
+      firebaseError?: string;
+    };
     setPending(false);
     if (!res.ok || !data.user) {
       setError(data.error || "Unable to add account.");
       return;
     }
-    setOk(`${role} account created for ${data.user.name}.`);
+    setOk(
+      data.firebaseConnected
+        ? `${role} account created and saved to Firebase.`
+        : `${role} account created locally. Firebase: ${data.firebaseError || "not connected"}.`,
+    );
     setForm({ name: "", email: "", password: "", confirm: "", className: "" });
     router.push(meta.listHref);
     router.refresh();

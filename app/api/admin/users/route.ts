@@ -4,11 +4,15 @@ import {
   createManagedUser,
   deleteUser,
   getUserByEmail,
+  getUserById,
   listAdminUsers,
   setUserStatus,
   toAdminUserRow,
   writeAudit,
 } from "@/lib/db";
+import { firebaseConfigured } from "@/lib/firebase";
+import { firebaseWebConfigured } from "@/lib/firebase-web";
+import { deleteUserFromFirebase, hydrateUsersFromFirebase, saveUserToFirebase } from "@/lib/firebase-users";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,7 +20,11 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const { error } = await requireSession(["admin"]);
   if (error) return error;
-  return NextResponse.json({ users: listAdminUsers() });
+  await hydrateUsersFromFirebase();
+  return NextResponse.json({
+    users: listAdminUsers(),
+    firebaseConnected: firebaseConfigured() || firebaseWebConfigured(),
+  });
 }
 
 export async function POST(request: Request) {
@@ -48,7 +56,12 @@ export async function POST(request: Request) {
     }
     const created = createManagedUser({ name, email, password, role, className: className || undefined });
     writeAudit(user!.name, "Created user", created.name);
-    return NextResponse.json({ user: toAdminUserRow(created) });
+    const cloud = await saveUserToFirebase(created, password);
+    return NextResponse.json({
+      user: toAdminUserRow(created),
+      firebaseConnected: cloud.ok,
+      firebaseError: cloud.ok ? "" : cloud.error,
+    });
   } catch {
     return NextResponse.json({ error: "Unable to create user." }, { status: 400 });
   }
@@ -63,7 +76,9 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "User and action are required." }, { status: 400 });
     }
     if (body.action === "delete") {
+      const existing = getUserById(body.id);
       deleteUser(body.id);
+      if (existing) await deleteUserFromFirebase(existing.email);
       writeAudit(user!.name, "Deleted user", body.id);
       return NextResponse.json({ ok: true });
     }
@@ -77,6 +92,7 @@ export async function PATCH(request: Request) {
             : "Active";
     const updated = setUserStatus(body.id, status);
     if (!updated) return NextResponse.json({ error: "User not found." }, { status: 404 });
+    await saveUserToFirebase(updated);
     writeAudit(user!.name, `${body.action} user`, updated.name);
     return NextResponse.json({ user: toAdminUserRow(updated) });
   } catch {

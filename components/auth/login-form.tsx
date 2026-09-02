@@ -3,15 +3,34 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Logo } from "@/components/ui/logo";
+import { Bell, BookOpen, Eye, EyeOff, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
 const homeByRole = {
   student: "/student",
   teacher: "/teacher",
   admin: "/admin",
 } as const;
+
+function ThsWordmark() {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative inline-flex items-end leading-none">
+        <span className="text-[64px] font-black tracking-tight text-primary">T</span>
+        <span className="relative text-[64px] font-black tracking-tight text-primary">
+          H
+          <GraduationCap
+            className="absolute -top-5 left-1/2 h-7 w-7 -translate-x-1/2 text-primary"
+            strokeWidth={2.4}
+            aria-hidden
+          />
+        </span>
+        <span className="text-[64px] font-black tracking-tight text-primary">S</span>
+      </div>
+      <p className="mt-1 text-xs font-semibold tracking-[0.28em] text-text-muted">LAB</p>
+    </div>
+  );
+}
 
 export function LoginForm({ justReset = false }: { justReset?: boolean }) {
   const router = useRouter();
@@ -46,45 +65,34 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-canvas p-4">
-      <div className="w-full max-w-md">
-        <div className="mb-6 flex justify-center">
-          <Logo />
-        </div>
-        <Card>
-          <h1 className="text-[28px] font-semibold tracking-tight">Login</h1>
-          <p className="mt-1 text-sm text-text-secondary">Sign in with your email and password.</p>
-          {justReset ? (
-            <p className="mt-3 text-sm font-medium text-teal">Password updated. Sign in with your new password.</p>
-          ) : null}
-          {error ? <p className="mt-3 text-sm text-error">{error}</p> : null}
-          <form className="mt-6 space-y-4" onSubmit={onSubmit}>
-            <div>
-              <label className="label" htmlFor="email">
-                Email
-              </label>
+    <main className="flex min-h-screen flex-col bg-white">
+      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(320px,42%)_1fr]">
+        <section className="flex flex-col justify-center px-6 py-10 sm:px-12">
+          <div className="mx-auto w-full max-w-sm">
+            <ThsWordmark />
+            {justReset ? (
+              <p className="mt-6 text-center text-sm font-medium text-teal">Password updated. Sign in below.</p>
+            ) : null}
+            {error ? <p className="mt-6 text-center text-sm font-medium text-error">{error}</p> : null}
+            <form className="mt-8 space-y-4" onSubmit={onSubmit}>
               <input
                 id="email"
                 name="email"
                 type="email"
-                className="input"
-                placeholder="you@thslab.edu"
+                className="h-12 w-full rounded-md border border-slate-300 bg-white px-4 text-base text-text outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="username"
                 required
               />
-            </div>
-            <div>
-              <label className="label" htmlFor="password">
-                Password
-              </label>
               <div className="relative">
                 <input
                   id="password"
                   name="password"
                   type={show ? "text" : "password"}
-                  className="input pr-24"
+                  className="h-12 w-full rounded-md border border-slate-300 bg-white px-4 pr-12 text-base text-text outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  placeholder="Password"
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -92,28 +100,52 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
                 />
                 <button
                   type="button"
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-sm font-medium text-primary"
+                  className="absolute top-1/2 right-3 -translate-y-1/2 text-primary"
                   onClick={() => setShow((v) => !v)}
+                  aria-label={show ? "Hide password" : "Show password"}
                 >
-                  {show ? "Hide" : "Show"}
+                  {show ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-text-secondary">
-                <input type="checkbox" className="h-4 w-4" suppressHydrationWarning />
-                Remember me
-              </label>
-              <Link href="/forgot-password" className="font-medium text-primary">
-                Forgot password
+              <div className="flex justify-end">
+                <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                  Forgot password
+                </Link>
+              </div>
+              <Button type="submit" className="h-12 w-full rounded-full" disabled={pending}>
+                {pending ? "Signing in…" : "Sign In"}
+              </Button>
+            </form>
+            <div className="mt-10 space-y-3 text-sm text-text-secondary">
+              <Link href="/home" className="flex items-center gap-2 hover:text-primary">
+                <Bell size={16} className="text-primary" />
+                Notice Board
+              </Link>
+              <Link href="/how-it-works" className="flex items-center gap-2 hover:text-primary">
+                <BookOpen size={16} className="text-primary" />
+                Student handbook
               </Link>
             </div>
-            <Button type="submit" className="w-full" disabled={pending}>
-              {pending ? "Signing in…" : "Login"}
-            </Button>
-          </form>
-        </Card>
+          </div>
+        </section>
+        <section className="relative hidden overflow-hidden bg-[#0B1B4A] lg:flex lg:items-center lg:justify-center">
+          <div className="welcome-grid absolute inset-0 opacity-30" />
+          <div className="absolute inset-0 bg-[#0B1B4A]/55" />
+          <div className="relative z-10 max-w-xl px-10 text-center text-white">
+            <h1 className="text-4xl font-semibold tracking-tight xl:text-5xl">Learning Management System</h1>
+            <p className="mt-6 text-lg text-blue-100">Learn. Practice. Improve.</p>
+            <p className="mt-4 text-base leading-8 text-blue-100/90">سیکھو، مشق کرو، بہتر بنو۔</p>
+          </div>
+        </section>
       </div>
+      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-6 py-3 text-xs text-text-muted">
+        <p>THS LAB LMS</p>
+        <p>© 2026 THS LAB. Professional IT education.</p>
+        <div className="flex gap-4">
+          <Link href="/contact">Contact us</Link>
+          <Link href="/about">Help</Link>
+        </div>
+      </footer>
     </main>
   );
 }

@@ -1,10 +1,48 @@
 import { NextResponse } from "next/server";
 import { sessionCookie, signSession } from "@/lib/auth";
 import { releaseAssessmentLock } from "@/lib/assessment-lock";
-import { adminCount, ensureAdministrator, getUserByEmail, isOwnerAdminEmail, setUserPassword } from "@/lib/db";
-import { verifyPassword } from "@/lib/password";
+import {
+  ensureAdministrator,
+  getUserByEmail,
+  isOwnerAdminEmail,
+  setUserPassword,
+  upsertUserRecord,
+} from "@/lib/db";
+import { hydrateUsersFromFirebase, saveUserToFirebase } from "@/lib/firebase-users";
+import { firebaseAuthSignIn, readFirestoreUser } from "@/lib/firebase-web";
+import { hashPassword, verifyPassword } from "@/lib/password";
 
 export const runtime = "nodejs";
+
+async function importFirebaseUser(email: string, password: string) {
+  try {
+    const session = await firebaseAuthSignIn(email, password);
+    const profile =
+      (await readFirestoreUser(session.idToken, session.localId)) ||
+      (await readFirestoreUser(session.idToken, email));
+    const role = profile?.role === "teacher" || profile?.role === "admin" || profile?.role === "student"
+      ? profile.role
+      : isOwnerAdminEmail(email)
+        ? "admin"
+        : "student";
+    upsertUserRecord({
+      id: profile?.id || session.localId,
+      name: profile?.name || email.split("@")[0],
+      email,
+      password_hash: hashPassword(password),
+      role,
+      class_name: profile?.class_name || (role === "admin" ? "Ops" : role === "teacher" ? "Faculty" : "BSIT-4A"),
+      status: profile?.active === false ? "Disabled" : "Active",
+      score: 0,
+      subject: null,
+      qualification: null,
+      avatar: null,
+    });
+    return getUserByEmail(email);
+  } catch {
+    return undefined;
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -15,31 +53,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
     }
 
-    let user = getUserByEmail(email);
+    await hydrateUsersFromFirebase();
+    let user = getUserByEmail(email) ?? (await importFirebaseUser(email, password));
     if (!user && isOwnerAdminEmail(email) && password.length >= 4) {
       user = ensureAdministrator({
         email,
         name: "mubashar ali",
         password,
       }).user;
+      await saveUserToFirebase(user, password);
     }
     if (user && isOwnerAdminEmail(email) && user.role !== "admin") {
       user = ensureAdministrator({ email }).user;
     }
     if (user && isOwnerAdminEmail(email) && password.length >= 4 && !verifyPassword(password, user.password_hash)) {
       user = setUserPassword(email, password) ?? user;
+      if (user) await saveUserToFirebase(user, password);
     }
 
     if (!user) {
-      if (adminCount() === 0) {
-        return NextResponse.json(
-          {
-            error: "No accounts exist on this server yet. Create the first administrator, then sign in.",
-            setup: true,
-          },
-          { status: 401 },
-        );
-      }
       return NextResponse.json({ error: "No account found for this email." }, { status: 401 });
     }
     if (user.status !== "Active") {

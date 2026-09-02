@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert } from "@/components/ui/alert";
 import { DataTable, Td, Tr } from "@/components/ui/table";
 import { UsersRoleCharts } from "@/components/admin/users-role-charts";
 import type { AdminUserRow } from "@/lib/db-types";
@@ -22,16 +23,18 @@ export function UsersManager({
   const [tab, setTab] = useState<AdminUserRow["role"] | "All">(initialRole ?? "All");
   const [rows, setRows] = useState(initialUsers);
   const [loadError, setLoadError] = useState("");
+  const [firebaseConnected, setFirebaseConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/admin/users", { cache: "no-store", signal: controller.signal })
       .then(async (res) => {
         if (!res.ok) throw new Error("Could not load accounts.");
-        return (await res.json()) as { users?: AdminUserRow[] };
+        return (await res.json()) as { users?: AdminUserRow[]; firebaseConnected?: boolean };
       })
       .then((data) => {
         if (data.users) setRows(data.users);
+        if (typeof data.firebaseConnected === "boolean") setFirebaseConnected(data.firebaseConnected);
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
@@ -90,6 +93,19 @@ export function UsersManager({
           </Button>
         }
       />
+      {firebaseConnected === false ? (
+        <div className="mb-4">
+          <Alert tone="hint">
+            Firebase is not connected, so new students and teachers stay on this server only. Add FIREBASE_PROJECT_ID,
+            FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY in .env.local and Vercel, then restart.
+          </Alert>
+        </div>
+      ) : null}
+      {firebaseConnected === true ? (
+        <div className="mb-4">
+          <Alert tone="success">Student and teacher accounts sync to Google Firebase.</Alert>
+        </div>
+      ) : null}
       <UsersRoleCharts
         users={rows}
         activeRole={tab}
