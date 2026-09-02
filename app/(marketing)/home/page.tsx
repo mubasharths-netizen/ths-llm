@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress";
 import { publicCourses } from "@/lib/db";
+import { ThsMark } from "@/components/ui/logo";
 
 const steps = ["Learn", "Practice", "Get Help", "Test", "Improve"];
 
@@ -14,13 +15,17 @@ export default function HomePage() {
       <section className="border-b border-border bg-surface">
         <div className="marketing-wrap grid items-center gap-10 py-16 lg:grid-cols-2 lg:py-24">
           <div>
-            <Badge>IT Learning Platform</Badge>
+            <ThsMark size="lg" />
+            <div className="mt-6">
+              <Badge>IT Learning Platform</Badge>
+            </div>
             <h1 className="mt-4 text-4xl font-bold tracking-tight text-text">
               Learn Technology. Practice Skills. Build Your Future.
             </h1>
             <p className="mt-4 max-w-xl text-base leading-7 text-text-secondary">
-              THS LAB LMS helps students learn programming, practice with guidance, sit focused tests, and
-              improve through analytics — without noise or gamification.
+              Taleem-o-Hunar Society is a non-profit focused on bringing children into school and empowering
+              families. THS LAB LMS is our IT learning platform for programming, practice, tests, and
+              improvement.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button href="/login">Get Started</Button>

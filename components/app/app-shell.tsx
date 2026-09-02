@@ -129,7 +129,7 @@ export function AppShell({
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-border px-4">
+        <div className="flex h-[72px] items-center justify-between border-b border-border px-4">
           <Logo href={nav[0]?.href ?? "/"} compact />
           <button type="button" className="lg:hidden" onClick={() => setOpen(false)} aria-label="Close">
             <X size={18} />

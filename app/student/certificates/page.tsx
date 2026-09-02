@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, PageHeader } from "@/components/ui/card";
+import { ThsMark } from "@/components/ui/logo";
 
 export const metadata = { title: "Certificates" };
 
@@ -9,8 +10,8 @@ export default function CertificatesPage() {
       <PageHeader title="Certificates" />
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <div className="flex h-36 items-center justify-center rounded-lg border border-border bg-canvas text-sm text-text-muted">
-            Certificate preview
+          <div className="flex h-36 items-center justify-center rounded-lg border border-border bg-canvas">
+            <ThsMark size="md" />
           </div>
           <h2 className="mt-4 font-semibold">Python Fundamentals</h2>
           <p className="text-sm text-text-secondary">Completed 12 Aug 2026 · ID THS-CERT-19402</p>

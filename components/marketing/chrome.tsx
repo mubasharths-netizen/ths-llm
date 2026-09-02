@@ -9,6 +9,7 @@ import { cn } from "@/lib/cn";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { THS_ORG } from "@/lib/ths-org";
 
 export function MarketingNav() {
   const pathname = usePathname();
@@ -16,7 +17,7 @@ export function MarketingNav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur">
-      <div className="marketing-wrap flex h-16 items-center justify-between gap-4">
+      <div className="marketing-wrap flex h-[72px] items-center justify-between gap-4">
         <Logo href="/home" />
         <nav className="hidden items-center gap-6 lg:flex">
           {marketingLinks.map((link) => (
@@ -74,8 +75,11 @@ export function MarketingFooter() {
         <div>
           <Logo href="/home" />
           <p className="mt-3 max-w-xs text-sm text-text-secondary">
-            Professional IT learning. Practice skills. Improve with guidance.
+            {THS_ORG.name} — {THS_ORG.tagline}. Non-profit education and skills in Lahore.
           </p>
+          <a href={THS_ORG.site} className="mt-2 inline-block text-sm text-primary hover:underline">
+            taleem-o-hunar.com
+          </a>
         </div>
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.06em] text-text-muted">Product</p>
@@ -102,7 +106,9 @@ export function MarketingFooter() {
           </div>
         </div>
       </div>
-      <div className="border-t border-border py-4 text-center text-sm text-text-muted">© 2026 THS LAB LMS</div>
+      <div className="border-t border-border py-4 text-center text-sm text-text-muted">
+        © 2026 {THS_ORG.name} (THS). All rights reserved.
+      </div>
     </footer>
   );
 }

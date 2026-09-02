@@ -22,7 +22,7 @@ export default function WelcomePage() {
         <div className="mb-6 flex justify-center">
           <ThsMark inverted size="lg" />
         </div>
-        <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">Welcome to THS</h1>
+        <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">Taleem-o-Hunar Society</h1>
         <p className="mt-3 text-xl text-blue-100">Learn. Practice. Improve.</p>
         <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-200">
           A professional IT learning platform where students learn technology, practice skills, receive AI

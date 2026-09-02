@@ -1,6 +1,13 @@
 import { cn } from "@/lib/cn";
 import Link from "next/link";
-import { GraduationCap } from "lucide-react";
+
+export const THS_LOGO_SRC = "/ths-logo.png";
+
+const markClass = {
+  sm: "h-12 w-12",
+  md: "h-14 w-14",
+  lg: "h-36 w-36 sm:h-44 sm:w-44",
+} as const;
 
 export function ThsMark({
   inverted = false,
@@ -9,22 +16,22 @@ export function ThsMark({
   inverted?: boolean;
   size?: "sm" | "md" | "lg";
 }) {
-  const letter = size === "lg" ? "text-[64px]" : size === "sm" ? "text-[22px]" : "text-[28px]";
-  const cap = size === "lg" ? "h-7 w-7 -top-5" : size === "sm" ? "h-3.5 w-3.5 -top-2.5" : "h-4 w-4 -top-3";
-  const color = inverted ? "text-white" : "text-primary";
-
   return (
-    <span className={cn("relative inline-flex items-end leading-none", color)} aria-label="THS">
-      <span className={cn(letter, "font-black tracking-tight")}>T</span>
-      <span className={cn("relative", letter, "font-black tracking-tight")}>
-        H
-        <GraduationCap
-          className={cn("absolute left-1/2 -translate-x-1/2", cap, color)}
-          strokeWidth={2.4}
-          aria-hidden
-        />
-      </span>
-      <span className={cn(letter, "font-black tracking-tight")}>S</span>
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center",
+        inverted && "rounded-2xl bg-white p-1",
+        markClass[size],
+      )}
+    >
+      <img
+        src={THS_LOGO_SRC}
+        alt="Taleem-o-Hunar Society"
+        width={176}
+        height={164}
+        className="h-full w-full object-contain object-center"
+        draggable={false}
+      />
     </span>
   );
 }
@@ -42,20 +49,23 @@ export function Logo({
 }) {
   const markSize = size ?? (compact ? "sm" : "md");
   return (
-    <Link href={href} className="inline-flex items-center gap-2">
-      <span className="flex flex-col items-start">
-        <ThsMark inverted={inverted} size={markSize} />
-        {!compact ? (
+    <Link href={href} className="inline-flex items-center gap-2.5">
+      <ThsMark inverted={inverted} size={markSize} />
+      {!compact ? (
+        <span className="flex flex-col items-start leading-tight">
+          <span className={cn("text-sm font-semibold tracking-tight", inverted ? "text-white" : "text-text")}>
+            Taleem-o-Hunar Society
+          </span>
           <span
             className={cn(
-              "mt-0.5 text-[10px] font-semibold tracking-[0.28em]",
+              "text-[11px] font-medium",
               inverted ? "text-white/70" : "text-text-muted",
             )}
           >
-            LAB
+            Education & Skill Development
           </span>
-        ) : null}
-      </span>
+        </span>
+      ) : null}
     </Link>
   );
 }

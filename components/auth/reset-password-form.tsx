@@ -16,6 +16,7 @@ export function ResetPasswordForm() {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const email = String(form.get("email") || "").trim();
+    const currentPassword = String(form.get("currentPassword") || "");
     const password = String(form.get("password") || "");
     const confirm = String(form.get("confirm") || "");
     void (async () => {
@@ -24,7 +25,7 @@ export function ResetPasswordForm() {
       const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, confirm }),
+        body: JSON.stringify({ email, currentPassword, password, confirm }),
       });
       const data = (await res.json()) as { error?: string };
       setPending(false);
@@ -44,9 +45,9 @@ export function ResetPasswordForm() {
           <Logo />
         </div>
         <Card>
-          <h1 className="text-[28px] font-semibold tracking-tight">Reset password</h1>
+          <h1 className="text-[28px] font-semibold tracking-tight">Change password</h1>
           <p className="mt-1 text-sm text-text-secondary">
-            Enter the email you registered with, then choose a new password.
+            Enter your current password, then choose a new one.
           </p>
           {error ? <p className="mt-3 text-sm text-error">{error}</p> : null}
           <form className="mt-6 space-y-4" onSubmit={onSubmit}>
@@ -55,6 +56,12 @@ export function ResetPasswordForm() {
                 Email
               </label>
               <input id="email" name="email" type="email" className="input" required />
+            </div>
+            <div>
+              <label className="label" htmlFor="currentPassword">
+                Current password
+              </label>
+              <input id="currentPassword" name="currentPassword" type="password" className="input" required />
             </div>
             <div>
               <label className="label" htmlFor="password">

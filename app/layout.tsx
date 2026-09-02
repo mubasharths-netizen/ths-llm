@@ -20,6 +20,10 @@ export const metadata: Metadata = {
   },
   description:
     "A professional IT learning platform where students learn technology, practice skills, receive AI guidance and improve academic performance.",
+  icons: {
+    icon: "/ths-logo.png",
+    apple: "/ths-logo.png",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

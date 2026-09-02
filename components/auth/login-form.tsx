@@ -32,14 +32,14 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
         body: JSON.stringify({ email: email.trim(), password }),
       });
       const data = (await res.json()) as { error?: string; user?: { role?: string } };
-      setPending(false);
-      if (!res.ok) {
-        setError(data.error || "Unable to sign in.");
+      if (!res.ok || !data.user?.role) {
+        setPending(false);
+        setError(data.error || "Wrong email or password.");
         return;
       }
-      const accountRole = data.user?.role;
+      setPending(false);
       const dest =
-        accountRole && accountRole in homeByRole ? homeByRole[accountRole as keyof typeof homeByRole] : "/student";
+        data.user.role in homeByRole ? homeByRole[data.user.role as keyof typeof homeByRole] : "/student";
       router.push(dest);
       router.refresh();
     })();
@@ -52,7 +52,8 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
           <div className="mx-auto w-full max-w-sm">
             <div className="flex flex-col items-center">
               <ThsMark size="lg" />
-              <p className="mt-1 text-xs font-semibold tracking-[0.28em] text-text-muted">LAB</p>
+              <p className="mt-3 text-sm font-semibold tracking-tight text-text">Taleem-o-Hunar Society</p>
+              <p className="mt-0.5 text-xs font-medium tracking-[0.18em] text-text-muted">THS LAB LMS</p>
             </div>
             {justReset ? (
               <p className="mt-6 text-center text-sm font-medium text-teal">Password updated. Sign in below.</p>
@@ -91,11 +92,6 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
                   {show ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <div className="flex justify-end">
-                <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                  Forgot password
-                </Link>
-              </div>
               <Button type="submit" className="h-12 w-full rounded-full" disabled={pending}>
                 {pending ? "Signing in…" : "Sign In"}
               </Button>
@@ -116,6 +112,9 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
           <div className="welcome-grid absolute inset-0 opacity-30" />
           <div className="absolute inset-0 bg-[#0B1B4A]/55" />
           <div className="relative z-10 max-w-xl px-10 text-center text-white">
+            <div className="mb-8 flex justify-center">
+              <ThsMark inverted size="lg" />
+            </div>
             <h1 className="text-4xl font-semibold tracking-tight xl:text-5xl">Learning Management System</h1>
             <p className="mt-6 text-lg text-blue-100">Learn. Practice. Improve.</p>
             <p className="mt-4 text-base leading-8 text-blue-100/90">سیکھو، مشق کرو، بہتر بنو۔</p>

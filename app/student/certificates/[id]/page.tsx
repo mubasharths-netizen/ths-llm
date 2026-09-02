@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, PageHeader } from "@/components/ui/card";
+import { ThsMark } from "@/components/ui/logo";
 
 export const metadata = { title: "Certificate" };
 
@@ -16,7 +17,10 @@ export default function CertificateDetailPage() {
         }
       />
       <Card className="aspect-[1.5/1] text-center">
-        <p className="text-xs tracking-[0.2em] text-text-muted uppercase">THS LAB LMS</p>
+        <div className="mb-4 flex justify-center">
+          <ThsMark size="md" />
+        </div>
+        <p className="text-xs tracking-[0.2em] text-text-muted uppercase">Taleem-o-Hunar Society</p>
         <h1 className="mt-6 text-3xl font-semibold">Certificate of Completion</h1>
         <p className="mt-6 text-text-secondary">This certifies that</p>
         <p className="mt-2 text-2xl font-semibold">Ayesha Khan</p>
