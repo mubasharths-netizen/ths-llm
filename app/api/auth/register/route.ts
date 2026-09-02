@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { registerAccount, sessionCookie, signSession } from "@/lib/auth";
 import { releaseAssessmentLock } from "@/lib/assessment-lock";
+import { persistLmsDatabase, restoreLmsDatabase } from "@/lib/db-cloud";
 import { adminCount, getUserByEmail } from "@/lib/db";
 import { saveUserToFirebase } from "@/lib/firebase-users";
 
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
     if (!name || !email.includes("@") || password.length < 4) {
       return NextResponse.json({ error: "Name, email, and a password (4+ characters) are required." }, { status: 400 });
     }
+    await restoreLmsDatabase();
     if (getUserByEmail(email)) {
       return NextResponse.json({ error: "An account with this email already exists. Use Login." }, { status: 409 });
     }
@@ -31,6 +33,7 @@ export async function POST(request: Request) {
     }
     const created = getUserByEmail(email);
     if (created) await saveUserToFirebase(created, password);
+    await persistLmsDatabase();
     const res = NextResponse.json({ user: result.user });
     releaseAssessmentLock(result.user.id);
     res.cookies.set(sessionCookie(signSession(result.user)));

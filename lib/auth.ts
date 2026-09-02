@@ -38,6 +38,8 @@ export function registerAccount(input: { name: string; email: string; password: 
 }
 
 export async function getSession(): Promise<SessionUser | null> {
+  const { restoreLmsDatabase } = await import("@/lib/db-cloud");
+  await restoreLmsDatabase();
   const jar = await cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
   if (!token) return null;

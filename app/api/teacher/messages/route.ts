@@ -47,6 +47,8 @@ export async function POST(request: Request) {
       studentIds: Array.isArray(body.studentIds) ? body.studentIds.map(String) : [],
     });
     if (result.error) return NextResponse.json({ error: result.error }, { status: 403 });
+    const { persistLmsDatabase } = await import("@/lib/db-cloud");
+    await persistLmsDatabase();
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "Unable to send message." }, { status: 400 });

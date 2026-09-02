@@ -146,6 +146,7 @@ export async function readFirestoreUser(idToken: string, docId: string) {
     role: role === "teacher" || role === "admin" ? role : "student",
     active: fields.active?.booleanValue !== false,
     class_name: fields.class_name?.stringValue || null,
+    password_hash: fields.password_hash?.stringValue || "",
   };
 }
 
@@ -155,19 +156,19 @@ export async function writeFirestoreUser(
   fields: Record<string, string | boolean | number | null>,
 ) {
   const encodedUid = encodeURIComponent(uid);
-  const res = await fetch(
-    `https://firestore.googleapis.com/v1/projects/${projectId()}/databases/(default)/documents/users/${encodedUid}`,
-    {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fields: Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, firestoreValue(value)])),
-      }),
-    },
-  );
+  const payload = JSON.stringify({
+    fields: Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, firestoreValue(value)])),
+  });
+  const headers = {
+    Authorization: `Bearer ${idToken}`,
+    "Content-Type": "application/json",
+  };
+  const docUrl = `https://firestore.googleapis.com/v1/projects/${projectId()}/databases/(default)/documents/users/${encodedUid}`;
+  let res = await fetch(docUrl, { method: "PATCH", headers, body: payload });
+  if (!res.ok) {
+    const collectionUrl = `https://firestore.googleapis.com/v1/projects/${projectId()}/databases/(default)/documents/users?documentId=${encodedUid}`;
+    res = await fetch(collectionUrl, { method: "POST", headers, body: payload });
+  }
   if (!res.ok) {
     const data = (await res.json()) as { error?: { message?: string } };
     throw new Error(data.error?.message || "Firestore write failed.");

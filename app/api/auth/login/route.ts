@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sessionCookie, signSession } from "@/lib/auth";
 import { releaseAssessmentLock } from "@/lib/assessment-lock";
 import { ensureAdministrator, getUserByEmail, isOwnerAdminEmail, upsertUserRecord } from "@/lib/db";
+import { persistLmsDatabase, restoreLmsDatabase } from "@/lib/db-cloud";
 import { hydrateUsersFromFirebase } from "@/lib/firebase-users";
 import { firebaseAuthSignIn, readFirestoreUser } from "@/lib/firebase-web";
 import { hashPassword, verifyPassword } from "@/lib/password";
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
     }
 
+    await restoreLmsDatabase();
     await hydrateUsersFromFirebase();
     const user = getUserByEmail(email) ?? (await importFirebaseUser(email, password));
 
@@ -75,6 +77,7 @@ export async function POST(request: Request) {
       user: { id: signedIn.id, name: signedIn.name, email: signedIn.email, role: signedIn.role },
     });
     releaseAssessmentLock(signedIn.id);
+    await persistLmsDatabase();
     res.cookies.set(sessionCookie(signSession(session)));
     res.cookies.set({
       name: "ths_assessment_lock",

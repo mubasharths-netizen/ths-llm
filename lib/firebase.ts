@@ -52,6 +52,7 @@ export function getFirebaseDb(): Firestore | null {
         clientEmail: account.clientEmail,
         privateKey: account.privateKey,
       }),
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET?.trim() || `${account.projectId}.firebasestorage.app`,
     });
   }
   return getFirestore();

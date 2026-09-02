@@ -77,6 +77,8 @@ export async function POST(request: Request) {
       questions: body.questions,
     });
     if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
+    const { persistLmsDatabase } = await import("@/lib/db-cloud");
+    await persistLmsDatabase();
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "Unable to save." }, { status: 400 });

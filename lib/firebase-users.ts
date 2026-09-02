@@ -78,12 +78,12 @@ export async function hydrateUsersFromFirebase() {
       const data = doc.data() as Partial<DbUser> & { active?: boolean; lms_id?: string };
       const email = String(data.email || doc.id).toLowerCase();
       const role = data.role === "teacher" || data.role === "admin" ? data.role : "student";
-      if (!email.includes("@") || !data.name || !data.password_hash) continue;
+      if (!email.includes("@") || !data.name) continue;
       upsertUserRecord({
         id: String(data.lms_id || data.id || doc.id),
         name: String(data.name),
         email,
-        password_hash: String(data.password_hash || ""),
+        password_hash: String(data.password_hash || "google:pending"),
         role,
         class_name: data.class_name == null ? null : String(data.class_name),
         status: data.active === false ? "Disabled" : String(data.status || "Active"),

@@ -51,6 +51,22 @@ function migrateUsers(database: DatabaseSync) {
   }
 }
 
+export function sqlitePath() {
+  return dbPath;
+}
+
+export function resetOpenDatabase() {
+  if (globalForDb.db) {
+    try {
+      globalForDb.db.close();
+    } catch {
+      // Connection may already be closed on a cold start.
+    }
+  }
+  globalForDb.db = undefined;
+  globalForDb.seeded = undefined;
+}
+
 export function db() {
   if (!globalForDb.db) {
     globalForDb.db = openDb();
