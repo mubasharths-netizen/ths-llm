@@ -28,7 +28,13 @@
         signInWithRedirect,
       } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
-      const ALLOWED_HOSTS = new Set(["localhost", "127.0.0.1", "ths-llm-sight.vercel.app", "ths-llm-1.vercel.app"]);
+      const ALLOWED_HOSTS = new Set([
+        "localhost",
+        "127.0.0.1",
+        "ths-llm-5.vercel.app",
+        "ths-llm-sight.vercel.app",
+        "ths-llm-1.vercel.app",
+      ]);
 
       function allowedOrigin(value) {
         if (!value) return "";

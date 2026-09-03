@@ -99,7 +99,19 @@ async function saveWithWebAuth(user: DbUser, password: string) {
 
 export async function saveUserToFirebase(user: DbUser, password?: string) {
   try {
-    if (getFirebaseDb()) return await saveWithAdmin(user, password);
+    if (getFirebaseDb()) {
+      const adminResult = await saveWithAdmin(user, password);
+      // If Admin Auth/Firestore partially failed but we have a password, try web signup too.
+      if (!adminResult.ok && password && firebaseWebConfigured()) {
+        try {
+          const webResult = await saveWithWebAuth(user, password);
+          if (webResult.ok) return webResult;
+        } catch {
+          // Keep the Admin error below.
+        }
+      }
+      return adminResult;
+    }
     if (password && firebaseWebConfigured()) return await saveWithWebAuth(user, password);
     if (firebaseWebConfigured()) {
       return {
