@@ -14,7 +14,8 @@ function isPublicAuthApi(pathname: string) {
     pathname === "/api/auth/register" ||
     pathname === "/api/auth/reset-password" ||
     pathname === "/api/auth/logout" ||
-    pathname === "/api/auth/google"
+    pathname === "/api/auth/google" ||
+    pathname === "/api/health/firebase"
   );
 }
 
