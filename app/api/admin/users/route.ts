@@ -10,6 +10,7 @@ import {
   toAdminUserRow,
   writeAudit,
 } from "@/lib/db";
+import { persistLmsDatabase, restoreLmsDatabase } from "@/lib/db-cloud";
 import { firebaseConfigured } from "@/lib/firebase";
 import { firebaseWebConfigured } from "@/lib/firebase-web";
 import { deleteUserFromFirebase, hydrateUsersFromFirebase, saveUserToFirebase } from "@/lib/firebase-users";
@@ -20,6 +21,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const { error } = await requireSession(["admin"]);
   if (error) return error;
+  await restoreLmsDatabase();
   await hydrateUsersFromFirebase();
   return NextResponse.json({
     users: listAdminUsers(),
@@ -31,6 +33,7 @@ export async function POST(request: Request) {
   const { user, error } = await requireSession(["admin"]);
   if (error) return error;
   try {
+    await restoreLmsDatabase();
     const body = (await request.json()) as {
       name?: string;
       email?: string;
@@ -57,13 +60,26 @@ export async function POST(request: Request) {
     const created = createManagedUser({ name, email, password, role, className: className || undefined });
     writeAudit(user!.name, "Created user", created.name);
     const cloud = await saveUserToFirebase(created, password);
+    await persistLmsDatabase();
+    if (!cloud.ok) {
+      return NextResponse.json(
+        {
+          user: toAdminUserRow(created),
+          firebaseConnected: false,
+          firebaseError: cloud.error,
+          warning: `Account saved, but Firebase sync failed: ${cloud.error}`,
+        },
+        { status: 201 },
+      );
+    }
     return NextResponse.json({
       user: toAdminUserRow(created),
-      firebaseConnected: cloud.ok,
-      firebaseError: cloud.ok ? "" : cloud.error,
+      firebaseConnected: true,
+      firebaseError: "",
     });
-  } catch {
-    return NextResponse.json({ error: "Unable to create user." }, { status: 400 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unable to create user.";
+    return NextResponse.json({ error: message.slice(0, 180) }, { status: 400 });
   }
 }
 
@@ -71,6 +87,7 @@ export async function PATCH(request: Request) {
   const { user, error } = await requireSession(["admin"]);
   if (error) return error;
   try {
+    await restoreLmsDatabase();
     const body = (await request.json()) as { id?: string; action?: string };
     if (!body.id || !body.action) {
       return NextResponse.json({ error: "User and action are required." }, { status: 400 });
@@ -80,6 +97,7 @@ export async function PATCH(request: Request) {
       deleteUser(body.id);
       if (existing) await deleteUserFromFirebase(existing.email);
       writeAudit(user!.name, "Deleted user", body.id);
+      await persistLmsDatabase();
       return NextResponse.json({ ok: true });
     }
     const status =
@@ -94,6 +112,7 @@ export async function PATCH(request: Request) {
     if (!updated) return NextResponse.json({ error: "User not found." }, { status: 404 });
     await saveUserToFirebase(updated);
     writeAudit(user!.name, `${body.action} user`, updated.name);
+    await persistLmsDatabase();
     return NextResponse.json({ user: toAdminUserRow(updated) });
   } catch {
     return NextResponse.json({ error: "Unable to update user." }, { status: 400 });

@@ -11,7 +11,8 @@ import {
   isOwnerAdminEmail,
   upsertUserRecord,
 } from "@/lib/db";
-import { hydrateUsersFromFirebase } from "@/lib/firebase-users";
+import { getFirebaseDb } from "@/lib/firebase";
+import { hydrateUsersFromFirebase, saveUserToFirebase } from "@/lib/firebase-users";
 import { lookupFirebaseIdToken, readFirestoreUser, verifyGoogleCredential, writeFirestoreUser } from "@/lib/firebase-web";
 import { hashPassword } from "@/lib/password";
 
@@ -115,7 +116,11 @@ export async function POST(request: Request) {
       );
     }
 
-    await saveCloudProfile(idToken, profile.localId, user);
+    if (getFirebaseDb()) {
+      await saveUserToFirebase(user);
+    } else {
+      await saveCloudProfile(idToken, profile.localId, user);
+    }
     await persistLmsDatabase();
 
     const session = { id: user.id, name: user.name, email: user.email, role: user.role };

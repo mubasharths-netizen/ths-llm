@@ -21,18 +21,22 @@ async function importFirebaseUser(email: string, password: string) {
         : isOwnerAdminEmail(email)
           ? "admin"
           : "student";
+    const existing = getUserByEmail(email);
     upsertUserRecord({
-      id: profile?.id || session.localId,
-      name: profile?.name || email.split("@")[0],
+      id: profile?.id || existing?.id || session.localId,
+      name: profile?.name || existing?.name || email.split("@")[0],
       email,
       password_hash: hashPassword(password),
       role,
-      class_name: profile?.class_name || (role === "admin" ? "Ops" : role === "teacher" ? "Faculty" : "BSIT-4A"),
-      status: profile?.active === false ? "Disabled" : "Active",
-      score: 0,
-      subject: null,
-      qualification: null,
-      avatar: null,
+      class_name:
+        profile?.class_name ||
+        existing?.class_name ||
+        (role === "admin" ? "Ops" : role === "teacher" ? "Faculty" : "BSIT-4A"),
+      status: profile?.active === false ? "Disabled" : existing?.status || "Active",
+      score: existing?.score ?? 0,
+      subject: existing?.subject ?? null,
+      qualification: existing?.qualification ?? null,
+      avatar: existing?.avatar ?? null,
     });
     return getUserByEmail(email);
   } catch {
@@ -51,7 +55,16 @@ export async function POST(request: Request) {
 
     await restoreLmsDatabase();
     await hydrateUsersFromFirebase();
-    const user = getUserByEmail(email) ?? (await importFirebaseUser(email, password));
+
+    let user = getUserByEmail(email);
+    const localOk = Boolean(user && verifyPassword(password, user.password_hash));
+    if (!localOk) {
+      const imported = await importFirebaseUser(email, password);
+      if (!imported) {
+        return NextResponse.json({ error: "Wrong email or password." }, { status: 401 });
+      }
+      user = imported;
+    }
 
     if (!user) {
       return NextResponse.json({ error: "Wrong email or password." }, { status: 401 });
@@ -61,9 +74,6 @@ export async function POST(request: Request) {
         { error: "This account is not active yet. An admin must approve it." },
         { status: 403 },
       );
-    }
-    if (!verifyPassword(password, user.password_hash)) {
-      return NextResponse.json({ error: "Wrong email or password." }, { status: 401 });
     }
 
     const signedIn =

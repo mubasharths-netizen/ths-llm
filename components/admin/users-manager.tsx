@@ -103,7 +103,7 @@ export function UsersManager({
       ) : null}
       {firebaseConnected === true ? (
         <div className="mb-4">
-          <Alert tone="success">Student and teacher accounts sync to Google Firebase.</Alert>
+          <Alert tone="success">Admin, teacher, and student accounts sync to Google Firebase.</Alert>
         </div>
       ) : null}
       <UsersRoleCharts
