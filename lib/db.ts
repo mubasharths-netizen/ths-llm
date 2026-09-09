@@ -1,8 +1,9 @@
 import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
-import { hashPassword } from "@/lib/password";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { dataDir } from "@/lib/data-dir";
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/demo-accounts";
 import { SCHEMA_SQL } from "@/lib/schema-sql";
 import type { AdminUserRow, CourseCard, CourseDetail, CourseLesson, CourseModule, SqlRow } from "@/lib/db-types";
 
@@ -78,7 +79,10 @@ export function ensureSeeded() {
   const database = db();
   migrateUsers(database);
   database.exec(SCHEMA_SQL);
+  if (globalForDb.seeded) return;
   ensureBootstrapAdmin(database);
+  ensureDemoAccounts(database);
+  globalForDb.seeded = true;
 }
 
 function ensureBootstrapAdmin(database: DatabaseSync) {
@@ -105,6 +109,51 @@ function ensureBootstrapAdmin(database: DatabaseSync) {
   } catch {
     // Another request may have created the same bootstrap admin.
   }
+}
+
+function ensureDemoAccounts(database: DatabaseSync) {
+  for (const account of DEMO_ACCOUNTS) {
+    const existing = database
+      .prepare("SELECT id, password_hash, role, status, class_name FROM users WHERE email = ?")
+      .get(account.email) as
+      | { id: string; password_hash: string; role: string; status: string; class_name: string | null }
+      | undefined;
+    if (
+      existing &&
+      existing.role === account.role &&
+      existing.status === "Active" &&
+      verifyPassword(DEMO_PASSWORD, existing.password_hash)
+    ) {
+      continue;
+    }
+    const hash = hashPassword(DEMO_PASSWORD);
+    if (existing) {
+      database
+        .prepare(
+          `UPDATE users
+           SET password_hash = ?, role = ?, status = 'Active',
+               class_name = COALESCE(NULLIF(class_name, ''), ?)
+           WHERE id = ?`,
+        )
+        .run(hash, account.role, account.class_name, existing.id);
+      continue;
+    }
+    try {
+      database
+        .prepare(
+          `INSERT INTO users (id, name, email, password_hash, role, class_name, status, score)
+           VALUES (?, ?, ?, ?, ?, ?, 'Active', 0)`,
+        )
+        .run(account.id, account.name, account.email, hash, account.role, account.class_name);
+    } catch {
+      // Another request may have created the same demo account.
+    }
+  }
+}
+
+export function seedDemoAccounts() {
+  ensureSeeded();
+  ensureDemoAccounts(db());
 }
 
 export function getUserByEmail(email: string) {

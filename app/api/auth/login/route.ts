@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { sessionCookie, signSession } from "@/lib/auth";
 import { releaseAssessmentLock } from "@/lib/assessment-lock";
-import { ensureAdministrator, getUserByEmail, isOwnerAdminEmail, upsertUserRecord } from "@/lib/db";
+import { ensureAdministrator, getUserByEmail, isOwnerAdminEmail, seedDemoAccounts, upsertUserRecord } from "@/lib/db";
 import { persistLmsDatabase, restoreLmsDatabase } from "@/lib/db-cloud";
 import { hydrateUsersFromFirebase } from "@/lib/firebase-users";
 import { firebaseAuthSignIn, readFirestoreUser } from "@/lib/firebase-web";
+import { resolveLoginEmail } from "@/lib/demo-accounts";
 import { hashPassword, verifyPassword } from "@/lib/password";
 
 export const runtime = "nodejs";
@@ -47,7 +48,8 @@ async function importFirebaseUser(email: string, password: string) {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { email?: string; password?: string };
-    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const email =
+      typeof body.email === "string" ? resolveLoginEmail(body.email) : "";
     const password = typeof body.password === "string" ? body.password : "";
     if (!email || !email.includes("@") || !password) {
       return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
@@ -55,6 +57,7 @@ export async function POST(request: Request) {
 
     await restoreLmsDatabase();
     await hydrateUsersFromFirebase();
+    seedDemoAccounts();
 
     let user = getUserByEmail(email);
     const localOk = Boolean(user && verifyPassword(password, user.password_hash));
