@@ -7,7 +7,6 @@ import { Bell, BookOpen, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThsMark } from "@/components/ui/logo";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
-import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/demo-accounts";
 
 const homeByRole = {
   student: "/student",
@@ -68,7 +67,7 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
                 type="text"
                 inputMode="email"
                 className="h-12 w-full rounded-md border border-slate-300 bg-white px-4 text-base text-text outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                placeholder="Email or admin / teacher / student"
+                placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="username"
@@ -99,26 +98,6 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
                 {pending ? "Signing in…" : "Sign In"}
               </Button>
             </form>
-            <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-center text-xs font-semibold tracking-wide text-text-muted uppercase">Demo logins</p>
-              <p className="mt-1 text-center text-[11px] text-text-muted">Password for all: {DEMO_PASSWORD}</p>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {DEMO_ACCOUNTS.map((account) => (
-                  <button
-                    key={account.id}
-                    type="button"
-                    className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-medium text-text hover:border-primary hover:text-primary"
-                    onClick={() => {
-                      setEmail(account.alias);
-                      setPassword(DEMO_PASSWORD);
-                      setError("");
-                    }}
-                  >
-                    {account.alias}
-                  </button>
-                ))}
-              </div>
-            </div>
             <div className="my-6 flex items-center gap-3 text-xs text-text-muted">
               <span className="h-px flex-1 bg-slate-200" />
               or
