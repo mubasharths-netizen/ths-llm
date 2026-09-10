@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Bell, BookOpen, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ const homeByRole = {
 } as const;
 
 export function LoginForm({ justReset = false }: { justReset?: boolean }) {
-  const router = useRouter();
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -38,11 +36,9 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
         setError(data.error || "Wrong email or password.");
         return;
       }
-      setPending(false);
       const dest =
         data.user.role in homeByRole ? homeByRole[data.user.role as keyof typeof homeByRole] : "/student";
-      router.push(dest);
-      router.refresh();
+      window.location.assign(dest);
     })();
   }
 

@@ -34,6 +34,7 @@ yarn-error.log*
 .env*
 .env.local
 .firebase-admin-creds.json
+firebase-service-account.json
 
 # local AI provider secrets
 /data/ai-config.json

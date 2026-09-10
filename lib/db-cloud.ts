@@ -6,6 +6,7 @@ import { db, resetOpenDatabase, sqlitePath } from "@/lib/db";
 import { getFirebaseDb } from "@/lib/firebase";
 
 const CLOUD_FILE = "lms/ths.db";
+const CLOUD_TIMEOUT_MS = 4000;
 
 type CloudState = {
   restored?: boolean;
@@ -14,6 +15,19 @@ type CloudState = {
 };
 
 const g = globalThis as unknown as CloudState;
+
+async function withTimeout<T>(promise: Promise<T>, label: string): Promise<T | null> {
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error(`${label} timed out`)), CLOUD_TIMEOUT_MS);
+      }),
+    ]);
+  } catch {
+    return null;
+  }
+}
 
 function storageBuckets() {
   if (!getFirebaseDb()) return [];
@@ -34,13 +48,19 @@ async function downloadDb() {
   let sawMissing = false;
   for (const store of buckets) {
     try {
-      const [exists] = await store.file(CLOUD_FILE).exists();
+      const existsResult = await withTimeout(store.file(CLOUD_FILE).exists(), "storage exists check");
+      if (!existsResult) continue;
+      const [exists] = existsResult;
       if (!exists) {
         sawMissing = true;
         continue;
       }
       resetOpenDatabase();
-      await store.file(CLOUD_FILE).download({ destination: dest });
+      const downloaded = await withTimeout(
+        store.file(CLOUD_FILE).download({ destination: dest }),
+        "storage download",
+      );
+      if (!downloaded) continue;
       return "ok" as const;
     } catch {
       continue;
@@ -74,11 +94,15 @@ export async function persistLmsDatabase() {
   }
   for (const store of storageBuckets()) {
     try {
-      await store.upload(dest, {
-        destination: CLOUD_FILE,
-        resumable: false,
-        metadata: { contentType: "application/octet-stream" },
-      });
+      const uploaded = await withTimeout(
+        store.upload(dest, {
+          destination: CLOUD_FILE,
+          resumable: false,
+          metadata: { contentType: "application/octet-stream" },
+        }),
+        "storage upload",
+      );
+      if (!uploaded) continue;
       g.ready = true;
       return;
     } catch {

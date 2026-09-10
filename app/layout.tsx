@@ -27,10 +27,6 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  if (process.env.VERCEL) {
-    const { restoreLmsDatabase } = await import("@/lib/db-cloud");
-    await restoreLmsDatabase();
-  }
   return (
     <html lang="en" className={`${inter.variable} ${jetbrains.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-canvas text-text font-sans">

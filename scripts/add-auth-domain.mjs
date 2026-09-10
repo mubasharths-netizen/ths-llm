@@ -4,6 +4,7 @@ const PROJECT = "ths-lab-lms-97e043";
 const EXTRA_DOMAINS = [
   "localhost",
   "127.0.0.1",
+  "ths-llm-ryhr.vercel.app",
   "ths-llm-sight.vercel.app",
   "ths-llm-1.vercel.app",
   "ths-lab-lms-97e043.firebaseapp.com",

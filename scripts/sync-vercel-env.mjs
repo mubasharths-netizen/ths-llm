@@ -21,15 +21,27 @@ const CONFIG = {
 };
 
 function loadExtraEnv() {
-  const files = [".firebase-admin-creds.json", ".env.local", ".env.ossi", ".env.lab-lms.prod"];
+  const files = [
+    "firebase-service-account.json",
+    ".firebase-admin-creds.json",
+    ".env.local",
+    ".env.ossi",
+    ".env.lab-lms.prod",
+  ];
   for (const file of files) {
     if (!fs.existsSync(file)) continue;
     try {
       if (file.endsWith(".json")) {
         const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
-        if (parsed.clientEmail) CONFIG.FIREBASE_CLIENT_EMAIL = parsed.clientEmail;
-        if (parsed.privateKey) CONFIG.FIREBASE_PRIVATE_KEY = parsed.privateKey;
-        if (parsed.projectId) CONFIG.FIREBASE_PROJECT_ID = parsed.projectId;
+        if (parsed.clientEmail || parsed.client_email) {
+          CONFIG.FIREBASE_CLIENT_EMAIL = parsed.clientEmail || parsed.client_email;
+        }
+        if (parsed.privateKey || parsed.private_key) {
+          CONFIG.FIREBASE_PRIVATE_KEY = (parsed.privateKey || parsed.private_key).replace(/\\n/g, "\n");
+        }
+        if (parsed.projectId || parsed.project_id) {
+          CONFIG.FIREBASE_PROJECT_ID = parsed.projectId || parsed.project_id;
+        }
         if (parsed.storageBucket) CONFIG.FIREBASE_STORAGE_BUCKET = parsed.storageBucket;
         continue;
       }

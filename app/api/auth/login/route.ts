@@ -55,18 +55,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
     }
 
-    await restoreLmsDatabase();
-    await hydrateUsersFromFirebase();
     seedDemoAccounts();
 
     let user = getUserByEmail(email);
-    const localOk = Boolean(user && verifyPassword(password, user.password_hash));
+    let localOk = Boolean(user && verifyPassword(password, user.password_hash));
     if (!localOk) {
-      const imported = await importFirebaseUser(email, password);
-      if (!imported) {
-        return NextResponse.json({ error: "Wrong email or password." }, { status: 401 });
+      await restoreLmsDatabase();
+      await hydrateUsersFromFirebase();
+      seedDemoAccounts();
+      user = getUserByEmail(email);
+      localOk = Boolean(user && verifyPassword(password, user.password_hash));
+      if (!localOk) {
+        const imported = await importFirebaseUser(email, password);
+        if (!imported) {
+          return NextResponse.json({ error: "Wrong email or password." }, { status: 401 });
+        }
+        user = imported;
       }
-      user = imported;
     }
 
     if (!user) {
@@ -90,7 +95,7 @@ export async function POST(request: Request) {
       user: { id: signedIn.id, name: signedIn.name, email: signedIn.email, role: signedIn.role },
     });
     releaseAssessmentLock(signedIn.id);
-    await persistLmsDatabase();
+    void persistLmsDatabase();
     res.cookies.set(sessionCookie(signSession(session)));
     res.cookies.set({
       name: "ths_assessment_lock",

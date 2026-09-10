@@ -156,11 +156,18 @@ export async function deleteUserFromFirebase(email: string) {
   }
 }
 
+const HYDRATE_TIMEOUT_MS = 4000;
+
 export async function hydrateUsersFromFirebase() {
   const firestore = getFirebaseDb();
   if (!firestore) return { ok: false, count: 0 };
   try {
-    const snap = await firestore.collection(COLLECTION).get();
+    const snap = await Promise.race([
+      firestore.collection(COLLECTION).get(),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("Firestore hydrate timed out")), HYDRATE_TIMEOUT_MS);
+      }),
+    ]);
     let count = 0;
     const seen = new Set<string>();
     for (const doc of snap.docs) {
