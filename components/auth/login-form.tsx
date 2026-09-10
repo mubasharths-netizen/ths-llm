@@ -60,15 +60,12 @@ export function LoginForm({ justReset = false }: { justReset?: boolean }) {
               <p className="mt-6 text-center text-sm font-medium text-teal">Password updated. Sign in below.</p>
             ) : null}
             {error ? <p className="mt-6 text-center text-sm font-medium text-error">{error}</p> : null}
-            <form className="mt-8 space-y-4" noValidate onSubmit={onSubmit}>
+            <form className="mt-8 space-y-4" onSubmit={onSubmit} noValidate>
               <input
                 id="email"
                 name="email"
                 type="text"
                 inputMode="text"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
                 className="h-12 w-full rounded-md border border-slate-300 bg-white px-4 text-base text-text outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 placeholder="Email"
                 value={email}
