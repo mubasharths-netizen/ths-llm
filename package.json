@@ -10,7 +10,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:push": "node scripts/push-lms-db.mjs"
+    "db:push": "node scripts/push-lms-db.mjs",
+    "firebase:seed-admin": "node scripts/seed-firebase-admin.mjs",
+    "vercel:env": "node scripts/sync-vercel-env.mjs"
   },
   "dependencies": {
     "firebase": "^12.18.0",

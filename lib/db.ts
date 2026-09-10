@@ -9,7 +9,11 @@ import type { AdminUserRow, CourseCard, CourseDetail, CourseLesson, CourseModule
 
 export type { AdminUserRow, CourseCard, CourseDetail, CourseLesson, CourseModule, SqlRow };
 
-const OWNER_ADMIN_EMAILS = new Set(["mubasharths@gmail.com", "mubashartha@gmail.com"]);
+const OWNER_ADMIN_EMAILS = new Set([
+  "admin@gmail.com",
+  "mubasharths@gmail.com",
+  "mubashartha@gmail.com",
+]);
 
 export function isOwnerAdminEmail(email: string) {
   return OWNER_ADMIN_EMAILS.has(email.trim().toLowerCase());
